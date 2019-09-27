@@ -1,10 +1,14 @@
+using Core.DomainServices;
+using Infrastructure.DataAccess;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Presentation.Web
 {
@@ -27,6 +31,12 @@ namespace Presentation.Web
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
+
+            services.AddDbContext<DataContext>(options => options.UseMySql("Server=localhost;Database=os2indberetning;Uid=root;Pwd=Test1234;", mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql)));
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
