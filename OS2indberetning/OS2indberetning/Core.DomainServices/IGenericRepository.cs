@@ -28,6 +28,6 @@ namespace Core.DomainServices
         void Delete(T entity);
         void DeleteRange(IEnumerable<T> entities);
 
-        //PropertyInfo GetPrimaryKeyProperty();
+        PropertyInfo GetPrimaryKeyProperty();
     }
 }

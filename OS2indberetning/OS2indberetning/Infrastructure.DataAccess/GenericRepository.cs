@@ -12,7 +12,7 @@ namespace Infrastructure.DataAccess
     {
         private readonly DbSet<T> _dbSet;
         private readonly DataContext _context;
-        //private string _primaryKeyName;
+        private string _primaryKeyName;
 
         public GenericRepository(DataContext context)
         {
@@ -136,17 +136,10 @@ namespace Infrastructure.DataAccess
         //    return objectSet.EntitySet.ElementType.KeyMembers;
         //}
 
-        //public PropertyInfo GetPrimaryKeyProperty()
-        //{
-        //    var t = typeof(T);
-
-        //    if (_primaryKeyName == null)
-        //    {
-        //        IEnumerable<dynamic> keyMembers = getKeyMenbers(t);
-
-        //        _primaryKeyName = keyMembers.Select(k => (string)k.Name).First();
-        //    }
-        //    return t.GetProperty(_primaryKeyName);
-        //}
+        public PropertyInfo GetPrimaryKeyProperty()
+        {
+            var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties.Select(x => x.Name).Single();
+            return typeof(T).GetType().GetProperty(keyName);
+        }
     }
 }
