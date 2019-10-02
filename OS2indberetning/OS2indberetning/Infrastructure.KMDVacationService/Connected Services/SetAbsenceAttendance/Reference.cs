@@ -16,6 +16,7 @@ namespace SetAbsenceAttendance
     public interface SetAbsenceAttendance_OS_SI
     {
         
+        // CODEGEN: Generating message contract since the operation SetAbsenceAttendance_OS_SI is neither RPC nor document wrapped.
         [System.ServiceModel.OperationContractAttribute(Action="http://sap.com/xi/WebService/soap1.1", ReplyAction="*")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse SetAbsenceAttendance_OS_SI(SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest request);
@@ -306,6 +307,7 @@ namespace SetAbsenceAttendance
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.1")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(IsWrapped=false)]
     public partial class SetAbsenceAttendance_OS_SIRequest
     {
@@ -325,6 +327,7 @@ namespace SetAbsenceAttendance
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.1")]
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(IsWrapped=false)]
     public partial class SetAbsenceAttendance_OS_SIResponse
     {
@@ -392,14 +395,31 @@ namespace SetAbsenceAttendance
         {
         }
         
-        public SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse SetAbsenceAttendance_OS_SI(SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest request)
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse SetAbsenceAttendance.SetAbsenceAttendance_OS_SI.SetAbsenceAttendance_OS_SI(SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest request)
         {
             return base.Channel.SetAbsenceAttendance_OS_SI(request);
         }
         
-        public System.Threading.Tasks.Task<SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse> SetAbsenceAttendance_OS_SIAsync(SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest request)
+        public SetAbsenceAttendance.SetAbsenceAttendanceResponse SetAbsenceAttendance_OS_SI(SetAbsenceAttendance.SetAbsenceAttendanceRequest SetAbsenceAttendanceRequest_MT)
+        {
+            SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest inValue = new SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest();
+            inValue.SetAbsenceAttendanceRequest_MT = SetAbsenceAttendanceRequest_MT;
+            SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse retVal = ((SetAbsenceAttendance.SetAbsenceAttendance_OS_SI)(this)).SetAbsenceAttendance_OS_SI(inValue);
+            return retVal.SetAbsenceAttendanceResponse_MT;
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        System.Threading.Tasks.Task<SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse> SetAbsenceAttendance.SetAbsenceAttendance_OS_SI.SetAbsenceAttendance_OS_SIAsync(SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest request)
         {
             return base.Channel.SetAbsenceAttendance_OS_SIAsync(request);
+        }
+        
+        public System.Threading.Tasks.Task<SetAbsenceAttendance.SetAbsenceAttendance_OS_SIResponse> SetAbsenceAttendance_OS_SIAsync(SetAbsenceAttendance.SetAbsenceAttendanceRequest SetAbsenceAttendanceRequest_MT)
+        {
+            SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest inValue = new SetAbsenceAttendance.SetAbsenceAttendance_OS_SIRequest();
+            inValue.SetAbsenceAttendanceRequest_MT = SetAbsenceAttendanceRequest_MT;
+            return ((SetAbsenceAttendance.SetAbsenceAttendance_OS_SI)(this)).SetAbsenceAttendance_OS_SIAsync(inValue);
         }
         
         public virtual System.Threading.Tasks.Task OpenAsync()

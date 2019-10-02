@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Core.ApplicationServices.Interfaces;
 using Core.ApplicationServices.MailerService.Interface;
 using Core.DomainModel;
 using Core.DomainServices;
-using Core.ApplicationServices.Logger;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Core.ApplicationServices.MailerService.Impl
 {
@@ -47,7 +44,7 @@ namespace Core.ApplicationServices.MailerService.Impl
                         _mailSender.SendMail(report.ResponsibleLeader.Mail, _config["PROTECTED_MAIL_SUBJECT_VACATION"], _config["PROTECTED_MAIL_BODY_VACATION"]);
                         break;
                     default:
-                        _logger.Log("Kunne ikke finde typen af rapport: " + report.Id, "web");
+                        _logger.LogError("Kunne ikke finde typen af rapport: " + report.Id);
                         break;
                 }
 
@@ -67,7 +64,7 @@ namespace Core.ApplicationServices.MailerService.Impl
 
             foreach (var report in reportsWithNoLeader)
             {
-                _logger.Log(report.Person.FullName + "s indberetning har ingen leder. Indberetningen kan derfor ikke godkendes.", "web", 2);
+                _logger.LogError(report.Person.FullName + "s indberetning har ingen leder. Indberetningen kan derfor ikke godkendes.");
             }
 
             return reports.Where(report => report.ResponsibleLeaderId != null && !string.IsNullOrEmpty(report.ResponsibleLeader.Mail) && report.ResponsibleLeader.RecieveMail);

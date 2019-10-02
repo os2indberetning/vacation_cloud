@@ -56,7 +56,7 @@ namespace Core.DomainServices
             {
                 cachedAddress = (CachedAddress)_actualLaunderer.Launder(cachedAddress);
             }
-            catch (AddressLaunderingException e)
+            catch (AddressLaunderingException)
             {
                 //Logger.Error("Fejl ved adressevask", e);
                 isDirty = true;
@@ -67,7 +67,7 @@ namespace Core.DomainServices
                 {
                     _coordinates.GetAddressCoordinates(cachedAddress, true);
                 }
-                catch (AddressCoordinatesException e)
+                catch (AddressCoordinatesException)
                 {
                     //Logger.Error("Fejl ved opslag af adressekoordinater", e);
                     isDirty = true;

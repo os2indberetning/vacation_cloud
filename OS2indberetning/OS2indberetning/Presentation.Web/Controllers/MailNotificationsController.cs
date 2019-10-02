@@ -11,7 +11,7 @@ namespace OS2Indberetning.Controllers
 {
     public class MailNotificationsController : BaseController<MailNotificationSchedule>
     {
-        public MailNotificationsController(IGenericRepository<MailNotificationSchedule> repo, IGenericRepository<Person> personRepo, ILogger logger) : base(repo, personRepo, logger){}
+        public MailNotificationsController(IGenericRepository<MailNotificationSchedule> repo, IGenericRepository<Person> personRepo, ILogger<MailNotificationSchedule> logger) : base(repo, personRepo, logger){}
         
         //GET: odata/MailNotificationSchedules
         /// <summary>

@@ -23,7 +23,7 @@ namespace OS2Indberetning.Controllers
         private readonly IGenericRepository<Person> _personRepo;
         private readonly PropertyInfo _primaryKeyProp;
 
-        private readonly ILogger _logger;
+        private readonly ILogger<T> _logger;
         protected Person CurrentUser;
 
         //protected override void Initialize(HttpControllerContext requestContext)
@@ -75,7 +75,7 @@ namespace OS2Indberetning.Controllers
         //    }
         //}
 
-        public BaseController(IGenericRepository<T> repository, IGenericRepository<Person> personRepo, ILogger logger)
+        public BaseController(IGenericRepository<T> repository, IGenericRepository<Person> personRepo, ILogger<T> logger)
         {
             _personRepo = personRepo;
             ValidationSettings.AllowedQueryOptions = AllowedQueryOptions.All;

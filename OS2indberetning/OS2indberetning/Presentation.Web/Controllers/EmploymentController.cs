@@ -13,7 +13,7 @@ namespace OS2Indberetning.Controllers
 {
     public class EmploymentsController : BaseController<Employment>
     {
-        public EmploymentsController(IGenericRepository<Employment> repo, IGenericRepository<Person> personRepo, ILogger logger) : base(repo, personRepo,logger){}
+        public EmploymentsController(IGenericRepository<Employment> repo, IGenericRepository<Person> personRepo, ILogger<Employment> logger) : base(repo, personRepo,logger){}
         
         //GET: odata/Employments
         /// <summary>

@@ -7,7 +7,7 @@ using Core.ApplicationServices.MailerService.Interface;
 using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.RoutingClasses;
-using Core.ApplicationServices.Logger;
+using Microsoft.Extensions.Logging;
 
 namespace Core.ApplicationServices
 {

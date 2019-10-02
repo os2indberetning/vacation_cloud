@@ -24,7 +24,7 @@ namespace OS2Indberetning.Controllers
         private readonly IGenericRepository<Report> _reportRepo;
         private readonly IOrgUnitService _orgService;
 
-        public PersonController(IGenericRepository<Person> repo, IPersonService personService, IGenericRepository<Employment> employmentRepo, IGenericRepository<LicensePlate> licensePlateRepo, IGenericRepository<Substitute> substituteRepo, IGenericRepository<AppLogin> appLoginRepo, IOrgUnitService orgService, IGenericRepository<Report> reportRepo, ILogger logger)
+        public PersonController(IGenericRepository<Person> repo, IPersonService personService, IGenericRepository<Employment> employmentRepo, IGenericRepository<LicensePlate> licensePlateRepo, IGenericRepository<Substitute> substituteRepo, IGenericRepository<AppLogin> appLoginRepo, IOrgUnitService orgService, IGenericRepository<Report> reportRepo, ILogger<Person> logger)
             : base(repo, repo,logger)
         {
             _person = personService;

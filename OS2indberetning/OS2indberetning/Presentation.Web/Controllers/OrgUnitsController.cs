@@ -15,7 +15,7 @@ namespace OS2Indberetning.Controllers
     {
         private readonly IOrgUnitService _orgService;
 
-        public OrgUnitsController(IGenericRepository<OrgUnit> repo, IGenericRepository<Person> personRepo, IOrgUnitService orgService, ILogger logger) : base(repo, personRepo,logger)
+        public OrgUnitsController(IGenericRepository<OrgUnit> repo, IGenericRepository<Person> personRepo, IOrgUnitService orgService, ILogger<OrgUnit> logger) : base(repo, personRepo,logger)
         {
             _orgService = orgService;
         }

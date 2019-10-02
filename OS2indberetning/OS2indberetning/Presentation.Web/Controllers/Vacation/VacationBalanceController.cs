@@ -16,7 +16,7 @@ namespace OS2Indberetning.Controllers.Vacation
     {
 
 
-        public VacationBalanceController(IGenericRepository<VacationBalance> repo, IGenericRepository<Person> personRepo, ILogger logger) : base(repo, personRepo,logger)
+        public VacationBalanceController(IGenericRepository<VacationBalance> repo, IGenericRepository<Person> personRepo, ILogger<VacationBalance> logger) : base(repo, personRepo,logger)
         {
         }
 

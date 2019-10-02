@@ -21,7 +21,7 @@ namespace OS2Indberetning.Controllers
 
 
         //GET: odata/Substitutes
-        public SubstitutesController(IGenericRepository<Substitute> repository, ISubstituteService sub, IGenericRepository<Person> personRepo, ILogger logger) : base(repository, personRepo, logger)
+        public SubstitutesController(IGenericRepository<Substitute> repository, ISubstituteService sub, IGenericRepository<Person> personRepo, ILogger<Substitute> logger) : base(repository, personRepo, logger)
         {
             _sub = sub;
         }

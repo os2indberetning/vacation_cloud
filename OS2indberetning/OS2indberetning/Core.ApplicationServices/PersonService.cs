@@ -5,7 +5,7 @@ using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.Interfaces;
 using Core.DomainServices.RoutingClasses;
-using Core.ApplicationServices.Logger;
+using Microsoft.Extensions.Logging;
 
 namespace Core.ApplicationServices
 {
@@ -17,7 +17,7 @@ namespace Core.ApplicationServices
         private readonly ILogger _logger;
         private readonly IKMDAbsenceService _absenceService;
 
-        public PersonService(IGenericRepository<PersonalAddress> addressRepo, IRoute<RouteInformation> route, IAddressCoordinates coordinates, ILogger logger, IKMDAbsenceService absenceService)
+        public PersonService(IGenericRepository<PersonalAddress> addressRepo, IRoute<RouteInformation> route, IAddressCoordinates coordinates, ILogger<PersonService> logger, IKMDAbsenceService absenceService)
         {
             _addressRepo = addressRepo;
             _route = route;
@@ -108,7 +108,7 @@ namespace Core.ApplicationServices
                         catch (AddressCoordinatesException e)
                         {
                             // Catch the exception to write the error to the log file.
-                            _logger.Log(person.FullName + " kan ikke logge på, da der er fejl i vedkommendes arbejds- eller hjemmeadresse.", "web", 1);
+                            _logger.LogError(e,person.FullName + " kan ikke logge på, da der er fejl i vedkommendes arbejds- eller hjemmeadresse.");
                             // Rethrow the exception to allow to front end to display the error aswell.
                             throw e;
                         }

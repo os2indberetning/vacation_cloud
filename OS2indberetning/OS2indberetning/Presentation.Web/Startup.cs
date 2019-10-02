@@ -1,14 +1,13 @@
-using Core.DomainServices;
-using Infrastructure.DataAccess;
+using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.Extensions.Logging;
+using Presentation.Web.Config;
+using System.IO;
 
 namespace Presentation.Web
 {
@@ -24,24 +23,21 @@ namespace Presentation.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddOData();
+            services.AddMvc(option => option.EnableEndpointRouting=false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
             });
-
-
-            services.AddDbContext<DataContext>(options => options.UseMySql("Server=localhost;Database=os2indberetning;Uid=root;Pwd=Test1234;", mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql)));
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-
+            services.AddDependencies(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddFile(Path.Combine(Configuration.GetSection("Logging")["LogPath"], "os2indberetning_{Date}.log"));
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -57,12 +53,7 @@ namespace Presentation.Web
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action=Index}/{id?}");
-            });
+            app.UseMvc(r => RouteConfig.Use(r));
 
             app.UseSpa(spa =>
             {
@@ -77,5 +68,6 @@ namespace Presentation.Web
                 }
             });
         }
+
     }
 }

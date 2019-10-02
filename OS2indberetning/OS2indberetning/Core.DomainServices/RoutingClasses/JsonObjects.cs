@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace Core.DomainServices.RoutingClasses
 {
@@ -15,15 +16,15 @@ namespace Core.DomainServices.RoutingClasses
 
     public class Adgangspunkt
     {
-        //public Adgangspunkt(JToken token)
-        //{
-        //    koordinater = new List<string>();
+        public Adgangspunkt(JToken token)
+        {
+            koordinater = new List<string>();
 
-        //    foreach (string point in token["koordinater"])
-        //    {
-        //        koordinater.Add(point);
-        //    }
-        //}
+            foreach (string point in token["koordinater"])
+            {
+                koordinater.Add(point);
+            }
+        }
         public List<string> koordinater { get; set; }
         public string __invalid_name__nøjagtighed { get; set; }
         public int kilde { get; set; }
@@ -34,13 +35,12 @@ namespace Core.DomainServices.RoutingClasses
 
     public class Vejstykke
     {
-        // todo use builtin system.text.json insteadof json.net
-        //public Vejstykke(JToken token)
-        //{
-        //    href = (string)token["href"];
-        //    navn = (string)token["navn"];
-        //    kode = (string)token["kode"];
-        //}
+        public Vejstykke(JToken token)
+        {
+            href = (string)token["href"];
+            navn = (string)token["navn"];
+            kode = (string)token["kode"];
+        }
         public string href { get; set; }
         public string navn { get; set; }
         public string kode { get; set; }
@@ -48,13 +48,12 @@ namespace Core.DomainServices.RoutingClasses
 
     public class Postnummer
     {
-        // todo use builtin system.text.json insteadof json.net
-        //public Postnummer(JToken token)
-        //{
-        //    href = (string)token["href"];
-        //    nr = (string)token["nr"];
-        //    navn = (string)token["navn"];
-        //}
+        public Postnummer(JToken token)
+        {
+            href = (string)token["href"];
+            nr = (string)token["nr"];
+            navn = (string)token["navn"];
+        }
         public string href { get; set; }
         public string nr { get; set; }
         public string navn { get; set; }
@@ -77,17 +76,16 @@ namespace Core.DomainServices.RoutingClasses
 
     public class RootCoordinateToAddressObject
     {
-        // todo use builtin system.text.json insteadof json.net
-        //public RootCoordinateToAddressObject(JToken token)
-        //{
-        //    href = (string)token["href"];
-        //    id = (string)token["id"];
-        //    kvh = (string)token["kvh"];
-        //    status = (int)token["status"];
-        //    vejstykke = new Vejstykke(token["vejstykke"]);
-        //    husnr = (string)token["husnr"];
-        //    postnummer = new Postnummer(token["postnummer"]);
-        //}
+        public RootCoordinateToAddressObject(JToken token)
+        {
+            href = (string)token["href"];
+            id = (string)token["id"];
+            kvh = (string)token["kvh"];
+            status = (int)token["status"];
+            vejstykke = new Vejstykke(token["vejstykke"]);
+            husnr = (string)token["husnr"];
+            postnummer = new Postnummer(token["postnummer"]);
+        }
 
         public string href { get; set; }
         public string id { get; set; }
@@ -104,13 +102,13 @@ namespace Core.DomainServices.RoutingClasses
 
     public class RouteSummary
     {
-        //public RouteSummary(JToken token)
-        //{
-        //    total_distance = (int)token["total_distance"];
-        //    total_time = (int)token["total_time"];
-        //    start_point = (string)token["start_point"];
-        //    end_point = (string)token["end_point"];
-        //}
+        public RouteSummary(JToken token)
+        {
+            total_distance = (int)token["total_distance"];
+            total_time = (int)token["total_time"];
+            start_point = (string)token["start_point"];
+            end_point = (string)token["end_point"];
+        }
 
         public int total_distance { get; set; }
         public int total_time { get; set; }
@@ -121,13 +119,13 @@ namespace Core.DomainServices.RoutingClasses
 
     public class AlternativeSummary
     {
-        //public AlternativeSummary(JToken token)
-        //{
-        //    total_distance = (int)token["total_distance"];
-        //    total_time = (int)token["total_time"];
-        //    start_point = (string)token["start_point"];
-        //    end_point = (string)token["end_point"];
-        //}
+        public AlternativeSummary(JToken token)
+        {
+            total_distance = (int)token["total_distance"];
+            total_time = (int)token["total_time"];
+            start_point = (string)token["start_point"];
+            end_point = (string)token["end_point"];
+        }
         public int total_distance { get; set; }
         public int total_time { get; set; }
         public string start_point { get; set; }
@@ -136,15 +134,15 @@ namespace Core.DomainServices.RoutingClasses
 
     public class RootRouteObject
     {
-        //public RootRouteObject(JToken token)
-        //{
+        public RootRouteObject(JToken token)
+        {
 
-        //    status = (int)token["status"];
-        //    status_message = (string)token["status_message"];
-        //    route_geometry = (string)token["route_geometry"];
-        //    alternative_geometries = new List<string>();
-        //    alternative_summaries = new List<AlternativeSummary>();
-        //}
+            status = (int)token["status"];
+            status_message = (string)token["status_message"];
+            route_geometry = (string)token["route_geometry"];
+            alternative_geometries = new List<string>();
+            alternative_summaries = new List<AlternativeSummary>();
+        }
 
         public int status { get; set; }
         public string status_message { get; set; }

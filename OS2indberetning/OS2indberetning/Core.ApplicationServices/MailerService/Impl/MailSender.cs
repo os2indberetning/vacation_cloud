@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Configuration;
 using System.Net;
 using System.Net.Mail;
 using Core.ApplicationServices.MailerService.Interface;
-using Core.ApplicationServices.Logger;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Core.ApplicationServices.MailerService.Impl
 {
@@ -56,7 +55,7 @@ namespace Core.ApplicationServices.MailerService.Impl
             }
             catch (Exception e )
             {
-                _logger.Log("Fejl under afsendelse af mail. Mail er ikke afsendt.", "mail", e, 1);
+                _logger.LogError(e, "Fejl under afsendelse af mail. Mail er ikke afsendt.");
             }
         }
     }

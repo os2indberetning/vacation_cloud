@@ -18,7 +18,7 @@ namespace OS2Indberetning.Controllers.Vacation
 
         private readonly ILogger _logger;
 
-        public VacationReportsController(IGenericRepository<VacationReport> repo, IVacationReportService reportService, IGenericRepository<Person> personRepo, IGenericRepository<Employment> employmentRepo, ILogger logger)
+        public VacationReportsController(IGenericRepository<VacationReport> repo, IVacationReportService reportService, IGenericRepository<Person> personRepo, IGenericRepository<Employment> employmentRepo, ILogger<VacationReport> logger)
             : base(repo, personRepo,logger)
         {
             _reportService = reportService;
@@ -264,7 +264,7 @@ namespace OS2Indberetning.Controllers.Vacation
             }
             catch(Infrastructure.KMDVacationService.KMDSetAbsenceFailedException ex)
             {
-                _logger.Log($"Fejl fra KMD's ferie snitflade ved forsøg på at godkende indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}", "web", ex, 1);
+                _logger.LogError(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at godkende indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}");
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
@@ -291,7 +291,7 @@ namespace OS2Indberetning.Controllers.Vacation
             }
             catch (Infrastructure.KMDVacationService.KMDSetAbsenceFailedException ex)
             {
-                _logger.Log($"Fejl fra KMD's ferie snitflade ved forsøg på at afvise indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}", "web", ex, 1);
+                _logger.LogError(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at afvise indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}");
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)

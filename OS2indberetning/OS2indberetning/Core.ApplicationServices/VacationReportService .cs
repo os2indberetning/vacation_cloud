@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Core.ApplicationServices.Interfaces;
-using Core.ApplicationServices.Logger;
+using Microsoft.Extensions.Logging;
 using Core.ApplicationServices.MailerService.Interface;
 using Core.DomainModel;
 using Core.DomainServices;
@@ -266,10 +266,10 @@ namespace Core.ApplicationServices
             if (report.Status != ReportStatus.Rejected) return;
             if (string.IsNullOrEmpty(report.Person.Mail))
             {
-                _logger.Log(
+                _logger.LogError(
                     "Forsøg på at sende mail om afvist indberetning til " + report.Person.FullName +
                     ", men der findes ingen emailadresse. " + report.Person.FullName +
-                    " har derfor ikke modtaget en mailadvisering", "mail", 2);
+                    " har derfor ikke modtaget en mailadvisering");
                 throw new Exception("Forsøg på at sende mail til person uden emailaddresse");
             }
 

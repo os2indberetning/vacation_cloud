@@ -12,7 +12,6 @@ namespace Infrastructure.DataAccess
     {
         private readonly DbSet<T> _dbSet;
         private readonly DataContext _context;
-        private string _primaryKeyName;
 
         public GenericRepository(DataContext context)
         {

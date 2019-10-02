@@ -10,7 +10,7 @@ namespace OS2Indberetning.Controllers
 {
     public class BankAccountsController : BaseController<BankAccount>
     {
-        public BankAccountsController(IGenericRepository<BankAccount> repo, IGenericRepository<Person> personRepo, ILogger logger) : base(repo, personRepo,logger) { }
+        public BankAccountsController(IGenericRepository<BankAccount> repo, IGenericRepository<Person> personRepo, ILogger<BankAccount> logger) : base(repo, personRepo,logger) { }
         
         //GET: odata/BankAccounts
         [EnableQuery]
