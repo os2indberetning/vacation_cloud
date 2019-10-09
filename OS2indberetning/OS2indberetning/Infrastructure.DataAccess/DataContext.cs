@@ -80,6 +80,7 @@ namespace Infrastructure.DataAccess
             modelBuilder.Entity<Person>().Ignore(t => t.IsSubstitute);
             modelBuilder.Entity<Person>().Ignore(t => t.HasAppPassword);
             modelBuilder.Entity<Person>().Ignore(p => p.DriveReports);
+            modelBuilder.Entity<Person>().HasMany(p => p.Employments).WithOne(e => e.Person);
             //modelBuilder.Entity<Person>().HasMany<Substitute>(p => p.Substitutes).WithOne(s => s.Leader);
         }
 

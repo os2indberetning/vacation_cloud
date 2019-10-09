@@ -6,6 +6,7 @@ using Core.ApplicationServices.Interfaces;
 using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.RoutingClasses;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
@@ -45,7 +46,7 @@ namespace OS2Indberetning.Controllers
         [EnableQuery]
         public IActionResult GetPerson(ODataQueryOptions<Person> queryOptions)
         {
-            var res = GetQueryable(queryOptions);
+            var res = GetQueryable(queryOptions).Include("Employments");
             _person.ScrubCprFromPersons(res);
             var currentTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             foreach (var person in res.ToList())
