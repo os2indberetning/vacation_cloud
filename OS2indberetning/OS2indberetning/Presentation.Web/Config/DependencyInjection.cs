@@ -16,7 +16,6 @@ using Infrastructure.AddressServices;
 using Core.DomainServices.RoutingClasses;
 using Infrastructure.AddressServices.Routing;
 using Infrastructure.AddressServices.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Presentation.Web.Config
 {

@@ -35,6 +35,9 @@ namespace OS2Indberetning.Controllers
             _appLoginRepo = appLoginRepo;
             _orgService = orgService;
             _reportRepo = reportRepo;
+
+            // temp test
+            CurrentUser = repo.AsQueryable().Include("Employments").FirstOrDefault(p => p.Initials.ToLower().Equals("kamr"));
         }
 
         // GET: odata/Person
@@ -80,7 +83,7 @@ namespace OS2Indberetning.Controllers
                 CurrentUser.Employments.Add(employment);
             }
 
-            _person.AddHomeWorkDistanceToEmployments(CurrentUser);
+            //_person.AddHomeWorkDistanceToEmployments(CurrentUser);
             CurrentUser.CprNumber = "";
             CurrentUser.HasAppPassword = _appLoginRepo.AsQueryable().Any(x => x.PersonId == CurrentUser.Id);
             var reports = _reportRepo.AsQueryable().Any(x => x.ResponsibleLeaderId == CurrentUser.Id && x.Status == ReportStatus.Pending);
@@ -113,7 +116,7 @@ namespace OS2Indberetning.Controllers
                 result.Employments.Add(employment);
             }
 
-            _person.AddHomeWorkDistanceToEmployments(result);
+            //_person.AddHomeWorkDistanceToEmployments(result);
             result.CprNumber = "";
             result.HasAppPassword = _appLoginRepo.AsQueryable().Any(x => x.PersonId == result.Id);
             result.IsSubstitute = _substituteRepo.AsQueryable().Any(x => x.SubId.Equals(result.Id) && x.StartDateTimestamp < currentDateTimestamp && x.EndDateTimestamp > currentDateTimestamp);
