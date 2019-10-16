@@ -13,6 +13,7 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace OS2Indberetning.Controllers
 {
@@ -83,6 +84,10 @@ namespace OS2Indberetning.Controllers
             Repo = repository;
             _primaryKeyProp = Repo.GetPrimaryKeyProperty();
             _logger = logger;
+
+            // temp test
+            CurrentUser = _personRepo.AsQueryable().Include("Employments.OrgUnit").FirstOrDefault(p => p.Initials.ToLower().Equals("lky"));
+
         }
 
         protected IQueryable<T> GetQueryable(ODataQueryOptions<T> queryOptions)

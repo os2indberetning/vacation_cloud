@@ -11,6 +11,7 @@ namespace Presentation.Web.Config
     {
         public static IRouteBuilder Use(IRouteBuilder routeBuilder)
         {
+            routeBuilder.Select().Filter().Expand().Count();            
             routeBuilder.MapODataServiceRoute("odata", "odata", GetODataModel());
             return routeBuilder;
         }

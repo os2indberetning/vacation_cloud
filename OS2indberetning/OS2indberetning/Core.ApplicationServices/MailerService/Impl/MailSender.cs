@@ -10,10 +10,10 @@ namespace Core.ApplicationServices.MailerService.Impl
     public class MailSender : IMailSender
     {
         private readonly SmtpClient _smtpClient;
-        private readonly ILogger _logger;
+        private readonly ILogger<MailSender> _logger;
         private readonly IConfiguration _config;
 
-        public MailSender(ILogger logger, IConfiguration config)
+        public MailSender(ILogger<MailSender> logger, IConfiguration config)
         {
             _logger = logger;
             _config = config;

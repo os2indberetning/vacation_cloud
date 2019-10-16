@@ -125,7 +125,7 @@ namespace OS2Indberetning.Controllers.Vacation
         /// <param name="emailText">The message to be sent to the owner of a report an admin has rejected or edited.</param>
         /// <returns>The posted report.</returns>
         [EnableQuery]
-        public IActionResult Post(VacationReport vacationReport, string emailText)
+        public IActionResult Post([FromBody] VacationReport vacationReport, string emailText)
         {
             if(CurrentUser.IsAdmin && emailText != null && vacationReport.Status == ReportStatus.Accepted)
             {

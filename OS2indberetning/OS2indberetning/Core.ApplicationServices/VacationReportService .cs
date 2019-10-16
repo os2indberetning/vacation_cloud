@@ -15,7 +15,7 @@ namespace Core.ApplicationServices
         private readonly IKMDAbsenceService _absenceService;
         private readonly IKMDAbsenceReportBuilder _absenceBuilder;
 
-        public VacationReportService(IGenericRepository<VacationReport> reportRepo, IMailSender mailSender, IGenericRepository<OrgUnit> orgUnitRepository, IGenericRepository<Employment> employmentRepository, IGenericRepository<Substitute> substituteRepository, IKMDAbsenceService absenceService, IKMDAbsenceReportBuilder absenceBuilder, ILogger logger) : base(mailSender, orgUnitRepository, employmentRepository, substituteRepository, logger, reportRepo)
+        public VacationReportService(IGenericRepository<VacationReport> reportRepo, IMailSender mailSender, IGenericRepository<OrgUnit> orgUnitRepository, IGenericRepository<Employment> employmentRepository, IGenericRepository<Substitute> substituteRepository, IKMDAbsenceService absenceService, IKMDAbsenceReportBuilder absenceBuilder, ILogger<VacationReportService> logger) : base(mailSender, orgUnitRepository, employmentRepository, substituteRepository, logger, reportRepo)
         {
             _absenceService = absenceService;
             _absenceBuilder = absenceBuilder;

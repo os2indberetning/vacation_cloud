@@ -36,8 +36,6 @@ namespace OS2Indberetning.Controllers
             _orgService = orgService;
             _reportRepo = reportRepo;
 
-            // temp test
-            CurrentUser = repo.AsQueryable().Include("Employments").FirstOrDefault(p => p.Initials.ToLower().Equals("kamr"));
         }
 
         // GET: odata/Person
