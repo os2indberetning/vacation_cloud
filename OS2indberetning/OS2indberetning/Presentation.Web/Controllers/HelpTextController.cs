@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace OS2Indberetning.Controllers
 {
+    [Route("api/[controller]")]
     public class HelpTextController : Controller
     {
         private IConfiguration _config;
@@ -21,6 +22,7 @@ namespace OS2Indberetning.Controllers
         /// </summary>
         /// <param name="id">Returns the helptext identified by id</param>
         /// <returns>Help text</returns>
+        [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
             try

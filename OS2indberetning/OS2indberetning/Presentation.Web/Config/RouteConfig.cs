@@ -11,10 +11,6 @@ namespace Presentation.Web.Config
     {
         public static IRouteBuilder Use(IRouteBuilder routeBuilder)
         {
-            routeBuilder.MapRoute(
-                name: "default",
-                template: "{controller}/{action=Index}/{id?}");
-
             routeBuilder.MapODataServiceRoute("odata", "odata", GetODataModel());
             return routeBuilder;
         }

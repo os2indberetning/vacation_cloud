@@ -38,8 +38,6 @@ namespace Presentation.Web
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
             app.UseMvc(r => RouteConfig.Use(r));
 
             DefaultFilesOptions options = new DefaultFilesOptions();
