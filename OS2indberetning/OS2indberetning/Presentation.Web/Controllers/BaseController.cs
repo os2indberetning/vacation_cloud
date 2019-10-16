@@ -86,7 +86,7 @@ namespace OS2Indberetning.Controllers
             _logger = logger;
 
             // temp test
-            CurrentUser = _personRepo.AsQueryable().Include("Employments.OrgUnit").FirstOrDefault(p => p.Initials.ToLower().Equals("lky"));
+            CurrentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.Initials.ToLower().Equals("lky"));
 
         }
 

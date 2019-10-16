@@ -21,7 +21,8 @@ namespace Presentation.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOData();
-            services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);        
             services.AddDependencies(Configuration);
         }
 
