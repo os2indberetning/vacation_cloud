@@ -3,6 +3,7 @@ using Core.DomainModel;
 using Core.DomainServices;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,7 @@ namespace OS2Indberetning.Controllers
 {
     public class BankAccountsController : BaseController<BankAccount>
     {
-        public BankAccountsController(IGenericRepository<BankAccount> repo, IGenericRepository<Person> personRepo, ILogger<BankAccount> logger) : base(repo, personRepo,logger) { }
+        public BankAccountsController(IGenericRepository<BankAccount> repo, IGenericRepository<Person> personRepo, ILogger<BankAccount> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager) { }
         
         //GET: odata/BankAccounts
         [EnableQuery]

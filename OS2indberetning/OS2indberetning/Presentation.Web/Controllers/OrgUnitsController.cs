@@ -8,6 +8,7 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 namespace OS2Indberetning.Controllers
 {
@@ -15,7 +16,7 @@ namespace OS2Indberetning.Controllers
     {
         private readonly IOrgUnitService _orgService;
 
-        public OrgUnitsController(IGenericRepository<OrgUnit> repo, IGenericRepository<Person> personRepo, IOrgUnitService orgService, ILogger<OrgUnit> logger) : base(repo, personRepo,logger)
+        public OrgUnitsController(IGenericRepository<OrgUnit> repo, IGenericRepository<Person> personRepo, IOrgUnitService orgService, ILogger<OrgUnit> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager)
         {
             _orgService = orgService;
         }

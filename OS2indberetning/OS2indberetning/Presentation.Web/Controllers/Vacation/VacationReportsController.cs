@@ -6,6 +6,7 @@ using Core.DomainServices;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,8 +20,8 @@ namespace OS2Indberetning.Controllers.Vacation
 
         private readonly ILogger _logger;
 
-        public VacationReportsController(IGenericRepository<VacationReport> repo, IVacationReportService reportService, IGenericRepository<Person> personRepo, IGenericRepository<Employment> employmentRepo, ILogger<VacationReport> logger)
-            : base(repo, personRepo,logger)
+        public VacationReportsController(IGenericRepository<VacationReport> repo, IVacationReportService reportService, IGenericRepository<Person> personRepo, IGenericRepository<Employment> employmentRepo, ILogger<VacationReport> logger, SignInManager<IdentityUser> signInManager)
+            : base(repo, personRepo,logger,signInManager)
         {
             _reportService = reportService;
             _employmentRepo = employmentRepo;

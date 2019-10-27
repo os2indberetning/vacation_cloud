@@ -8,12 +8,13 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 namespace OS2Indberetning.Controllers
 {
     public class EmploymentsController : BaseController<Employment>
     {
-        public EmploymentsController(IGenericRepository<Employment> repo, IGenericRepository<Person> personRepo, ILogger<Employment> logger) : base(repo, personRepo,logger){}
+        public EmploymentsController(IGenericRepository<Employment> repo, IGenericRepository<Person> personRepo, ILogger<Employment> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager){}
         
         //GET: odata/Employments
         /// <summary>

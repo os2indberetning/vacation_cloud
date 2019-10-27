@@ -7,6 +7,7 @@ using Core.DomainModel;
 using Core.DomainServices;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,7 @@ namespace OS2Indberetning.Controllers.Vacation
     {
 
 
-        public VacationBalanceController(IGenericRepository<VacationBalance> repo, IGenericRepository<Person> personRepo, ILogger<VacationBalance> logger) : base(repo, personRepo,logger)
+        public VacationBalanceController(IGenericRepository<VacationBalance> repo, IGenericRepository<Person> personRepo, ILogger<VacationBalance> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager)
         {
         }
 

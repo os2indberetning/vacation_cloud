@@ -12,6 +12,7 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 namespace OS2Indberetning.Controllers
 {
@@ -25,8 +26,8 @@ namespace OS2Indberetning.Controllers
         private readonly IGenericRepository<Report> _reportRepo;
         private readonly IOrgUnitService _orgService;
 
-        public PersonController(IGenericRepository<Person> repo, IPersonService personService, IGenericRepository<Employment> employmentRepo, IGenericRepository<LicensePlate> licensePlateRepo, IGenericRepository<Substitute> substituteRepo, IGenericRepository<AppLogin> appLoginRepo, IOrgUnitService orgService, IGenericRepository<Report> reportRepo, ILogger<Person> logger)
-            : base(repo, repo,logger)
+        public PersonController(IGenericRepository<Person> repo, IPersonService personService, IGenericRepository<Employment> employmentRepo, IGenericRepository<LicensePlate> licensePlateRepo, IGenericRepository<Substitute> substituteRepo, IGenericRepository<AppLogin> appLoginRepo, IOrgUnitService orgService, IGenericRepository<Report> reportRepo, ILogger<Person> logger, SignInManager<IdentityUser> signInManager)
+            : base(repo, repo,logger,signInManager)
         {
             _person = personService;
             _employmentRepo = employmentRepo;

@@ -9,6 +9,7 @@ using Core.DomainServices;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +22,7 @@ namespace OS2Indberetning.Controllers
 
 
         //GET: odata/Substitutes
-        public SubstitutesController(IGenericRepository<Substitute> repository, ISubstituteService sub, IGenericRepository<Person> personRepo, ILogger<Substitute> logger) : base(repository, personRepo, logger)
+        public SubstitutesController(IGenericRepository<Substitute> repository, ISubstituteService sub, IGenericRepository<Person> personRepo, ILogger<Substitute> logger, SignInManager<IdentityUser> signInManager) : base(repository, personRepo, logger,signInManager)
         {
             _sub = sub;
         }

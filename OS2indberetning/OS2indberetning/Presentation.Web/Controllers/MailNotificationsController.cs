@@ -4,6 +4,7 @@ using Core.DomainServices;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +12,7 @@ namespace OS2Indberetning.Controllers
 {
     public class MailNotificationsController : BaseController<MailNotificationSchedule>
     {
-        public MailNotificationsController(IGenericRepository<MailNotificationSchedule> repo, IGenericRepository<Person> personRepo, ILogger<MailNotificationSchedule> logger) : base(repo, personRepo, logger){}
+        public MailNotificationsController(IGenericRepository<MailNotificationSchedule> repo, IGenericRepository<Person> personRepo, ILogger<MailNotificationSchedule> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo, logger,signInManager){}
         
         //GET: odata/MailNotificationSchedules
         /// <summary>

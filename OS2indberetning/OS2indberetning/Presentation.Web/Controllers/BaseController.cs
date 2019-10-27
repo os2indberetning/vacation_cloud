@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Threading.Tasks;
 
 namespace OS2Indberetning.Controllers
 {
@@ -23,9 +26,10 @@ namespace OS2Indberetning.Controllers
         protected IGenericRepository<T> Repo;
         private readonly IGenericRepository<Person> _personRepo;
         private readonly PropertyInfo _primaryKeyProp;
-
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<T> _logger;
-        protected Person CurrentUser;
+        private Person _currentUser;
+
 
         //protected override void Initialize(HttpControllerContext requestContext)
         //{
@@ -74,9 +78,12 @@ namespace OS2Indberetning.Controllers
         //        //_logger.Log("Gyldig domænebruger ikke fundet (" + User.Identity.Name + "). " + User.Identity.Name + " har derfor ikke kunnet logge på.", "web", 3);
         //        throw new UnauthorizedAccessException("Gyldig domænebruger ikke fundet (" + User.Identity.Name + "). " + User.Identity.Name + " har derfor ikke kunnet logge på..");
         //    }
-        //}
-
-        public BaseController(IGenericRepository<T> repository, IGenericRepository<Person> personRepo, ILogger<T> logger)
+        //}        
+        public BaseController(
+            IGenericRepository<T> repository,
+            IGenericRepository<Person> personRepo,
+            ILogger<T> logger,
+            SignInManager<IdentityUser> signInManager)
         {
             _personRepo = personRepo;
             ValidationSettings.AllowedQueryOptions = AllowedQueryOptions.All;
@@ -84,10 +91,21 @@ namespace OS2Indberetning.Controllers
             Repo = repository;
             _primaryKeyProp = Repo.GetPrimaryKeyProperty();
             _logger = logger;
+            _signInManager = signInManager;
+        }
 
-            // temp test
-            CurrentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.Initials.ToLower().Equals("lky"));
-
+        protected Person CurrentUser
+        {
+            get{
+                if (_currentUser == null)
+                {
+                    var info = _signInManager.GetExternalLoginInfoAsync();
+                    info.Wait();
+                    var cprClaim = info.Result.Principal.Claims.Where(c => c.Type == "http://rep.oio.dk/cpr.dk/xml/schemas/core/2005/03/18/PersonCivilRegistrationIdentifier").First();
+                    _currentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(cprClaim.Value));
+                }
+                return _currentUser;
+            }
         }
 
         protected IQueryable<T> GetQueryable(ODataQueryOptions<T> queryOptions)
