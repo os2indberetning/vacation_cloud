@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@page
+@model Presentation.Web.Pages.indexModel
+
+<!DOCTYPE html>
 <html ng-app="app">
 <head>
     <meta charset="utf-8" />
@@ -17,7 +20,7 @@
     </div>
     <div class="errors-container">
     </div>
-    <div ng-hide="menuCollapse" class="version-text hidden-xs">TODO: AppSettings["VERSION"]</div>
+    <div ng-hide="menuCollapse" class="version-text hidden-xs">Version @Model.Version</div>
 
     <!-- Required libraries for AWS snippet -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
