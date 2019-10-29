@@ -2,21 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Reflection;
 using Core.DomainModel;
 using Core.DomainServices;
 using Expression = System.Linq.Expressions.Expression;
-using System.Net.Http;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
 
 namespace OS2Indberetning.Controllers
 {
@@ -30,55 +25,6 @@ namespace OS2Indberetning.Controllers
         private readonly ILogger<T> _logger;
         private Person _currentUser;
 
-
-        //protected override void Initialize(HttpControllerContext requestContext)
-        //{
-        //    base.Initialize(requestContext);
-
-        //    var enviornmnt = System.Environment.GetEnvironmentVariable("ASPNET_ENVIORNMENT");
-
-        //    var httpUser = User.Identity.Name.Split('\\');
-
-        //    if (enviornmnt == "DEMO")
-        //    {
-        //        var queryDictionary = requestContext.Request.Headers.Referrer.ParseQueryString();
-        //        var demoUser = queryDictionary.Get("user");
-        //        if (demoUser != null)
-        //        {
-        //            httpUser = new string[2]
-        //            {
-        //                ConfigurationManager.AppSettings["PROTECTED_AD_DOMAIN"],
-        //                demoUser
-        //            };
-        //        }
-        //    }
-
-
-        //    if (httpUser.Length == 2 && String.Equals(httpUser[0], ConfigurationManager.AppSettings["PROTECTED_AD_DOMAIN"], StringComparison.CurrentCultureIgnoreCase))
-        //    {
-        //        var initials = httpUser[1].ToLower();
-
-        //        // END DEBUG
-        //        CurrentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.Initials.ToLower().Equals(initials));
-
-        //        if (CurrentUser == null)
-        //        {
-        //            //_logger.Log("AD-bruger ikke fundet i databasen (" + User.Identity.Name + "). " + User.Identity.Name + " har derfor ikke kunnet logge på.", "web", 3);
-        //            throw new UnauthorizedAccessException("AD-bruger ikke fundet i databasen.");
-        //        }
-
-        //        if (!CurrentUser.IsActive)
-        //        {
-        //            //_logger.Log("Inaktiv bruger forsøgte at logge ind (" + User.Identity.Name + "). " + User.Identity.Name + " har derfor ikke kunnet logge på.", "web", 3);
-        //            throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        //_logger.Log("Gyldig domænebruger ikke fundet (" + User.Identity.Name + "). " + User.Identity.Name + " har derfor ikke kunnet logge på.", "web", 3);
-        //        throw new UnauthorizedAccessException("Gyldig domænebruger ikke fundet (" + User.Identity.Name + "). " + User.Identity.Name + " har derfor ikke kunnet logge på..");
-        //    }
-        //}        
         public BaseController(
             IGenericRepository<T> repository,
             IGenericRepository<Person> personRepo,
@@ -101,8 +47,21 @@ namespace OS2Indberetning.Controllers
                 {
                     var info = _signInManager.GetExternalLoginInfoAsync();
                     info.Wait();
+                    if (info.Result == null)
+                    {
+                        throw new UnauthorizedAccessException("Bruger ikke logget ind");
+                    }
                     var cprClaim = info.Result.Principal.Claims.Where(c => c.Type == "http://rep.oio.dk/cpr.dk/xml/schemas/core/2005/03/18/PersonCivilRegistrationIdentifier").First();
-                    _currentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(cprClaim.Value));
+                    _currentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(cprClaim.Value.Replace("-","")));
+                    if (CurrentUser == null)
+                    {
+                        throw new UnauthorizedAccessException("Bruger ikke fundet i databasen.");
+                    }
+                    if (!CurrentUser.IsActive)
+                    {
+                        throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
+                    }
+                    _currentUser.IsAdmin = info.Result.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
                 }
                 return _currentUser;
             }
