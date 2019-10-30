@@ -18,11 +18,13 @@ namespace Presentation.Web.Pages
 
         public async Task<IActionResult> OnGetAsync()
         {
-            // AuthorizeAttribute apparently not working properly with the SustainSys.Saml2 framework, so invoking a custom controller that initiates the challenge instead.
+            // AuthorizeAttribute apparently not working with returnurl, so issuing challenge manually instead 
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return Redirect("./SAML/Login");
+                var provider = "Saml2";
+                var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "/");
+                return new ChallengeResult(provider, properties);
             }
             return Page();
         }

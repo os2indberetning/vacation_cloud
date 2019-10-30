@@ -7,9 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Presentation.Web.Config;
-using Sustainsys.Saml2;
-using Sustainsys.Saml2.Metadata;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Presentation.Web
 {
@@ -31,23 +28,9 @@ namespace Presentation.Web
 
             services.AddOData();
             services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-                .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);        
+                .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-            services.AddAuthentication()
-                .AddSaml2(options =>
-                {
-                    options.SPOptions.EntityId = new EntityId("https://localhost:44342/Saml2");
-                    options.IdentityProviders.Add(
-                        new IdentityProvider(
-                            new EntityId("http://demo-adfs.digital-identity.dk/adfs/services/trust"), options.SPOptions)
-                            {
-                                LoadMetadata = true
-                                ,MetadataLocation = "https://demo-adfs.digital-identity.dk/FederationMetadata/2007-06/FederationMetadata.xml"
-                        });
-                    options.SPOptions.ServiceCertificates.Add(new X509Certificate2("samlKeystore.pfx", "Test1234"));
-
-                });
-
+            services.AddSAMLAuthentication(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

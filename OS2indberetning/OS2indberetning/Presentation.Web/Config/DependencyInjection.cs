@@ -24,7 +24,12 @@ namespace Presentation.Web.Config
     {
         public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<DataContext>(options => options.UseMySql("Server=localhost;Database=os2indberetning;Uid=root;Pwd=Test1234;", mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql)));
+            var dbConf = configuration.GetSection("Database");
+            services.AddDbContext<DataContext>(options => options.UseMySql(
+                "Server=" + dbConf.GetValue<string>("server") + 
+                ";Database=" + dbConf.GetValue<string>("Database") + 
+                ";Uid=" + dbConf.GetValue<string>("Uid") + 
+                ";Pwd=" + dbConf.GetValue<string>("Pwd") + ";", mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql))); ;
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IPersonService, PersonService>();
             services.AddScoped<IMobileTokenService,MobileTokenService>();
