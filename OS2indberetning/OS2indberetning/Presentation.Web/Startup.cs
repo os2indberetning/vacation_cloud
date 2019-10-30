@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Presentation.Web.Auth;
 using Presentation.Web.Config;
 
 namespace Presentation.Web
@@ -23,14 +24,13 @@ namespace Presentation.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDependencies(Configuration);
-
             services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<DataContext>();
-
             services.AddOData();
             services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
                 .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddSAMLAuthentication(Configuration);
+            services.AddAuthentication(o => o.AddScheme(APIAuthenticationHandler.AuthenticationScheme, a => a.HandlerType = typeof(APIAuthenticationHandler)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
