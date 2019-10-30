@@ -204,3 +204,4 @@ Presentation.Web/App/**/*.js
 Presentation.Web/App/**/*.map
 
 .vs/
+OS2indberetning/OS2indberetning/Presentation.Web/wwwroot/Bundles/
