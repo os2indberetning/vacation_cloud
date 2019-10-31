@@ -5,10 +5,10 @@ using Presentation.Web.Auth;
 
 namespace Presentation.Web.Controllers.API
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [Authorize(AuthenticationSchemes = APIAuthenticationHandler.AuthenticationScheme)]
     [ApiController]
-    public class OrganizationController : ControllerBase
+    public class APIController : ControllerBase
     {
         // GET: api/OrgUnitsAPI
         [HttpGet]

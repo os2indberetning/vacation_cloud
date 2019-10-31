@@ -15,19 +15,15 @@ namespace Presentation.Web.Config
                 .AddSaml2(options =>
                 {
                     ;
-                    options.SPOptions.EntityId = new EntityId(configuration.GetSection("SAML").GetValue<string>("EntityId"));
+                    options.SPOptions.EntityId = new EntityId(configuration["SAML:EntityId"]);
                     options.IdentityProviders.Add(
                         new IdentityProvider(
-                            new EntityId(configuration.GetSection("SAML").GetValue<string>("IdpEntityId")), options.SPOptions)
+                            new EntityId(configuration["SAML:IdpEntityId"]), options.SPOptions)
                         {
                             LoadMetadata = true
-                                ,
-                            MetadataLocation = configuration.GetSection("SAML").GetValue<string>("IdpMetadataLocation")
+                            ,MetadataLocation = configuration["SAML:IdpMetadataLocation"]
                         });
-                    options.SPOptions.ServiceCertificates.Add(new X509Certificate2(
-                        configuration.GetSection("SAML").GetValue<string>("CertificateFilename"),
-                        configuration.GetSection("SAML").GetValue<string>("CertificatePassword")));
-
+                    options.SPOptions.ServiceCertificates.Add(new X509Certificate2(configuration["SAML:CertificateFilename"], configuration["SAML:CertificatePassword"]));
                 });
             return services;
         }
