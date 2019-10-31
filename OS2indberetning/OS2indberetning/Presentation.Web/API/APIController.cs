@@ -1,45 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using Core.ApplicationServices;
+using Core.DomainModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Web.Auth;
 
 namespace Presentation.Web.Controllers.API
 {
-    [Route("api")]
+    [Route("api/[action]")]
     [Authorize(AuthenticationSchemes = APIAuthenticationHandler.AuthenticationScheme)]
     [ApiController]
     public class APIController : ControllerBase
     {
-        // GET: api/OrgUnitsAPI
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly APIService _apiService;
+
+        public APIController(APIService apiService)
         {
-            return new string[] { "value1", "value2" };
+            _apiService = apiService;
         }
 
-        // GET: api/OrgUnitsAPI/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST: api/OrgUnitsAPI
         [HttpPost]
-        public void Post([FromBody] string value)
+        public void UpdateOrganization([FromBody] APIOrganizationDTO apiOrganizationDTO)
         {
-        }
-
-        // PUT: api/OrgUnitsAPI/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            _apiService.UpdateOrganization(apiOrganizationDTO);
         }
     }
 }

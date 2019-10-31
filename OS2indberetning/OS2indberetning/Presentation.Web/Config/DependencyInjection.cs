@@ -51,6 +51,7 @@ namespace Presentation.Web.Config
             services.AddScoped<IKMDAbsenceService,KMDAbsenceService>();
             services.AddScoped<IKMDAbsenceReportBuilder,KMDAbsenceReportBuilder>();
             services.AddScoped<ICustomSettings,CustomSettings>();
+            services.AddScoped<APIService>();
             return services;
         }
     }
