@@ -13,25 +13,27 @@ namespace Core.ApplicationServices
         private readonly IGenericRepository<CachedAddress> _cachedRepo;
         private readonly IAddressLaunderer _actualLaunderer;
         private readonly IAddressCoordinates _coordinates;
+        private readonly IGenericRepository<Person> _personRepo;
 
-
-
-        public APIService(            
+        public APIService(
             IGenericRepository<OrgUnit> orgUnitRepo,
             IGenericRepository<CachedAddress> cachedRepo,
             IAddressLaunderer actualLaunderer,
-            IAddressCoordinates coordinates        
+            IAddressCoordinates coordinate,
+            IGenericRepository<Person> personRepo
             )
         {
             _orgUnitRepo = orgUnitRepo;
             _cachedRepo = cachedRepo;
             _actualLaunderer = actualLaunderer;
-            _coordinates = coordinates;
+            _coordinates = coordinate;
+            _personRepo = personRepo;
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
         {
-            UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+            //UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+            UpdatePersons(apiOrganizationDTO.Persons);
         }
 
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
@@ -61,6 +63,25 @@ namespace Core.ApplicationServices
             }
 
 
+        }
+
+        private void UpdatePersons(IEnumerable<APIPerson> apiPersons)
+        {
+            // Handle inserts
+            //var toBeInserted = apiPersons.Where(s => !_persons)
+
+
+            // Handle updates
+
+
+            // Handle deletes
+            var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
+            foreach (var personToBeDeleted in toBeDeleted)
+            {
+                personToBeDeleted.IsActive = false;
+            }
+            _personRepo.Save();
+                
         }
 
         private OrgUnit mapAPIOrgUnit(APIOrgUnit apiOrgUnit, ref OrgUnit orgUnit)
