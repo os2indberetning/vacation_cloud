@@ -19,14 +19,14 @@ namespace Core.ApplicationServices
             IGenericRepository<OrgUnit> orgUnitRepo,
             IGenericRepository<CachedAddress> cachedRepo,
             IAddressLaunderer actualLaunderer,
-            IAddressCoordinates coordinate,
+            IAddressCoordinates coordinates,
             IGenericRepository<Person> personRepo
             )
         {
             _orgUnitRepo = orgUnitRepo;
             _cachedRepo = cachedRepo;
             _actualLaunderer = actualLaunderer;
-            _coordinates = coordinate;
+            _coordinates = coordinates;
             _personRepo = personRepo;
         }
 
