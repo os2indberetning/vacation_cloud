@@ -2,6 +2,7 @@
 using Core.ApplicationServices.Interfaces;
 using Core.DomainModel;
 using Core.DomainServices;
+using Core.DomainServices.Interfaces;
 
 namespace Core.ApplicationServices
 {

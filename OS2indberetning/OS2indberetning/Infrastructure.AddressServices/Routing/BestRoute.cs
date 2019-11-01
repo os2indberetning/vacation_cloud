@@ -1,12 +1,10 @@
-﻿using System;
+﻿using Core.DomainModel;
+using Core.DomainServices;
+using Core.DomainServices.RoutingClasses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.DomainServices.RoutingClasses;
-using Core.DomainServices.Ínterfaces;
-using Infrastructure.AddressServices.Interfaces;
 using Address = Core.DomainModel.Address;
-using Core.DomainModel;
-using Core.DomainServices;
 
 namespace Infrastructure.AddressServices.Routing
 {

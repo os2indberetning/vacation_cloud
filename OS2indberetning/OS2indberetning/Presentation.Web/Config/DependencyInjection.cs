@@ -1,21 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using Core.ApplicationServices;
+﻿using Core.ApplicationServices;
 using Core.ApplicationServices.Interfaces;
 using Core.ApplicationServices.MailerService.Impl;
 using Core.ApplicationServices.MailerService.Interface;
 using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.Interfaces;
+using Core.DomainServices.RoutingClasses;
+using Infrastructure.AddressServices;
+using Infrastructure.AddressServices.Routing;
 using Infrastructure.DataAccess;
 using Infrastructure.KMDVacationService;
-using IAddressCoordinates = Core.DomainServices.IAddressCoordinates;
-using Infrastructure.AddressServices;
-using Core.DomainServices.RoutingClasses;
-using Infrastructure.AddressServices.Routing;
-using Infrastructure.AddressServices.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Presentation.Web.Config
 {
@@ -29,7 +27,7 @@ namespace Presentation.Web.Config
                 ";Database=" + configuration["Database:Database"] + 
                 ";Uid=" + configuration["Database:Uid"] + 
                 ";Pwd=" + configuration["Database:Pwd"] + ";", mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql))); ;
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IPersonService, PersonService>();
             services.AddScoped<IMobileTokenService,MobileTokenService>();
             services.AddScoped<IMailSender,MailSender>();

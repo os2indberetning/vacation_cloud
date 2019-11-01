@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Core.DomainModel;
+﻿using Core.DomainModel;
+using Core.DomainServices.Interfaces;
 using Core.DomainServices.RoutingClasses;
-using Infrastructure.AddressServices.Interfaces;
+using System.Linq;
 
 namespace Core.DomainServices
 {

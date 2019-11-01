@@ -1,42 +1,37 @@
-﻿using System;
+﻿using Core.DomainModel;
+using Core.DomainServices;
+using Core.DomainServices.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Core.DomainModel;
-using Core.DomainServices;
 
 namespace Core.ApplicationServices
 {
     public class APIService
     {
         private readonly IGenericRepository<OrgUnit> _orgUnitRepo;
+        private readonly IGenericRepository<CachedAddress> _cachedRepo;
+        private readonly IAddressLaunderer _actualLaunderer;
+        private readonly IAddressCoordinates _coordinates;
 
-        public APIService(IGenericRepository<OrgUnit> orgUnitRepo)
+
+
+        public APIService(            
+            IGenericRepository<OrgUnit> orgUnitRepo,
+            IGenericRepository<CachedAddress> cachedRepo,
+            IAddressLaunderer actualLaunderer,
+            IAddressCoordinates coordinates        
+            )
         {
             _orgUnitRepo = orgUnitRepo;
+            _cachedRepo = cachedRepo;
+            _actualLaunderer = actualLaunderer;
+            _coordinates = coordinates;
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
         {
             UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
-        }
-
-        private Address mapAPIAddress(APIAddress apiAddress)
-        { 
-            
-        }
-
-        private OrgUnit mapAPIOrgUnit(APIOrgUnit apiOrgUnit, OrgUnit orgUnit)
-        {
-            orgUnit.OrgId = int.Parse(apiOrgUnit.Id);
-            if (!String.IsNullOrEmpty(apiOrgUnit.ParentId))
-            {
-                orgUnit.ParentId = int.Parse(apiOrgUnit.ParentId);
-            }
-            orgUnit.ShortDescription = apiOrgUnit.Name;
-            orgUnit.LongDescription = apiOrgUnit.Name;
-            
-            return orgUnit;
         }
 
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
@@ -45,8 +40,13 @@ namespace Core.ApplicationServices
             var toBeInserted = apiOrgUnits.Where(s => !_orgUnitRepo.AsQueryable().Select(d => d.OrgId.ToString()).Contains(s.Id));
             foreach (var apiOrgUnit in toBeInserted)
             {
-                var orgUnit = mapAPIOrgUnit(apiOrgUnit, new OrgUnit());
-                _orgUnitRepo.Insert(orgUnit);
+                var orgToInsert = new OrgUnit();
+                orgToInsert.HasAccessToFourKmRule = false;
+                orgToInsert.HasAccessToVacation = false;
+                orgToInsert.DefaultKilometerAllowance = KilometerAllowance.Calculated;
+                mapAPIOrgUnit(apiOrgUnit,ref orgToInsert);
+                _orgUnitRepo.Insert(orgToInsert);
+                _orgUnitRepo.Save();
             }
 
             // Handle updates
@@ -54,66 +54,111 @@ namespace Core.ApplicationServices
             foreach (var orgUnit in toBeUpdated)
             {
                 var apiOrgUnit = apiOrgUnits.Where(s => s.Id == orgUnit.OrgId.ToString()).First();
-                var updatedOrgUnit = mapAPIOrgUnit(apiOrgUnit, orgUnit);
-                _orgUnitRepo.Update(updatedOrgUnit);
+                var orgToUpdate = orgUnit;
+                mapAPIOrgUnit(apiOrgUnit, ref orgToUpdate);
+                _orgUnitRepo.Update(orgToUpdate);
+                _orgUnitRepo.Save();
             }
 
-            _orgUnitRepo.Save();
 
-            //var i = 0;
-            //foreach (var org in orgs)
-            //{
-            //    i++;
-            //    if (i % 10 == 0)
-            //    {
-            //        Console.WriteLine("Migrating organisation " + i + " of " + orgs.Count() + ".");
-            //    }
+        }
 
-            //    var orgToInsert = _orgRepo.AsQueryable().FirstOrDefault(x => x.OrgId == org.LOSOrgId);
-
-            //    var workAddress = GetWorkAddress(org);
-            //    if (workAddress == null)
-            //    {
-            //        continue;
-            //    }
-
-            //    if (orgToInsert == null)
-            //    {
-            //        orgToInsert = _orgRepo.Insert(new OrgUnit());
-            //        orgToInsert.HasAccessToFourKmRule = false;
-            //        orgToInsert.HasAccessToVacation = false;
-            //        orgToInsert.DefaultKilometerAllowance = KilometerAllowance.Calculated;
-            //    }
-
-            //    orgToInsert.Level = org.Level;
-            //    orgToInsert.LongDescription = org.Navn;
-            //    orgToInsert.ShortDescription = org.KortNavn;
-            //    orgToInsert.OrgId = org.LOSOrgId;
-
-            //    var addressChanged = false;
-
-            //    if (workAddress != orgToInsert.Address)
-            //    {
-            //        addressChanged = true;
-            //        orgToInsert.Address = workAddress;
-            //    }
+        private OrgUnit mapAPIOrgUnit(APIOrgUnit apiOrgUnit, ref OrgUnit orgUnit)
+        {
+            orgUnit.OrgId = int.Parse(apiOrgUnit.Id);
+            if (!String.IsNullOrEmpty(apiOrgUnit.ParentId))
+            {
+                orgUnit.ParentId = _orgUnitRepo.AsQueryable().Where(o => o.OrgId.ToString() == apiOrgUnit.ParentId).Select(o => o.Id).First();
+            }
+            orgUnit.ShortDescription = apiOrgUnit.Name;
+            orgUnit.LongDescription = apiOrgUnit.Name;
+            var workAddress = GetWorkAddress(apiOrgUnit);
+            if (workAddress != orgUnit.Address)
+            {
+                orgUnit.Address = workAddress;
+            }
+            return orgUnit;
+        }
 
 
+        /// <summary>
+        /// Gets work address from API Address.
+        /// </summary>
+        /// <param name="org"></param>
+        /// <returns>WorkAddress</returns>
+        private WorkAddress GetWorkAddress(APIOrgUnit apiOrgunit)
+        {
+            var launderer = new CachedAddressLaunderer(_cachedRepo, _actualLaunderer, _coordinates);
 
-            //    if (orgToInsert.Level > 0)
-            //    {
-            //        orgToInsert.ParentId = _orgRepo.AsQueryable().Single(x => x.OrgId == org.ParentLosOrgId).Id;
-            //    }
-            //    _orgRepo.Save();
+            if (apiOrgunit.Address?.Street == null)
+            {
+                return null;
+            }
 
-            //    if (addressChanged)
-            //    {
-            //        workAddress.OrgUnitId = orgToInsert.Id;
-            //    }
+            var splitStreetAddress = SplitAddressOnNumber(apiOrgunit.Address.Street);
 
-            //}
+            var addressToLaunder = new Address
+            {
+                StreetName = splitStreetAddress.ElementAt(0),
+                StreetNumber = splitStreetAddress.Count > 1 ? splitStreetAddress.ElementAt(1) : "1",
+                ZipCode = apiOrgunit.Address.PostalCode,
+                Town = apiOrgunit.Address.City,
+                Description = apiOrgunit.Name
+            };
 
-            //Console.WriteLine("Done migrating organisations.");
+            addressToLaunder = launderer.Launder(addressToLaunder);
+
+            var launderedAddress = new WorkAddress()
+            {
+                StreetName = addressToLaunder.StreetName,
+                StreetNumber = addressToLaunder.StreetNumber,
+                ZipCode = addressToLaunder.ZipCode,
+                Town = addressToLaunder.Town,
+                Latitude = addressToLaunder.Latitude ?? "",
+                Longitude = addressToLaunder.Longitude ?? "",
+                Description = apiOrgunit.Name
+            };
+
+            var existingOrg = _orgUnitRepo.AsQueryable().FirstOrDefault(x => x.OrgId.Equals(apiOrgunit.Id));
+
+            // If the address hasn't changed then set the Id to be the same as the existing one.
+            // That way a new address won't be created in the database.
+            // If the address is not the same as the existing one,
+            // Then the Id will be 0, and a new address will be created in the database.
+            if (existingOrg != null
+                && existingOrg.Address != null
+                && existingOrg.Address.StreetName == launderedAddress.StreetName
+                && existingOrg.Address.StreetNumber == launderedAddress.StreetNumber
+                && existingOrg.Address.ZipCode == launderedAddress.ZipCode
+                && existingOrg.Address.Town == launderedAddress.Town
+                && existingOrg.Address.Latitude == launderedAddress.Latitude
+                && existingOrg.Address.Longitude == launderedAddress.Longitude
+                && existingOrg.Address.Description == launderedAddress.Description)
+            {
+                launderedAddress.Id = existingOrg.AddressId;
+            }
+            return launderedAddress;
+        }
+
+        /// <summary>
+        /// Splits an address represented as "StreetName StreetNumber" into a list of "StreetName" , "StreetNumber"
+        /// </summary>
+        /// <param name="address">String to split</param>
+        /// <returns>List of StreetName and StreetNumber</returns>
+        private List<String> SplitAddressOnNumber(string address)
+        {
+            var result = new List<string>();
+            var index = address.IndexOfAny("0123456789".ToCharArray());
+            if (index == -1)
+            {
+                result.Add(address);
+            }
+            else
+            {
+                result.Add(address.Substring(0, index - 1));
+                result.Add(address.Substring(index, address.Length - index));
+            }
+            return result;
         }
 
     }

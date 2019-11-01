@@ -7,6 +7,7 @@ using Core.DomainServices.RoutingClasses;
 using Core.DomainServices;
 using Core.DomainModel;
 using Newtonsoft.Json.Linq;
+using Core.DomainServices.Interfaces;
 
 namespace Infrastructure.AddressServices
 {
