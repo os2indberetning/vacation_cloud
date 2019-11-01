@@ -12,5 +12,6 @@ namespace Core.DomainModel
         public APIAddress Address { get; set; }
         public string Email { get; set; }
         public IEnumerable<APIEmployment> Employments { get; set; }
+        public string Initials { get; set; }
     }
 }

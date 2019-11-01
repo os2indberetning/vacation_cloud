@@ -14,13 +14,15 @@ namespace Core.ApplicationServices
         private readonly IAddressLaunderer _actualLaunderer;
         private readonly IAddressCoordinates _coordinates;
         private readonly IGenericRepository<Person> _personRepo;
+        private readonly IGenericRepository<PersonalAddress> _personalAddressRepo;
 
         public APIService(
             IGenericRepository<OrgUnit> orgUnitRepo,
             IGenericRepository<CachedAddress> cachedRepo,
             IAddressLaunderer actualLaunderer,
             IAddressCoordinates coordinates,
-            IGenericRepository<Person> personRepo
+            IGenericRepository<Person> personRepo,
+            IGenericRepository<PersonalAddress> personalAddressRepo
             )
         {
             _orgUnitRepo = orgUnitRepo;
@@ -28,6 +30,7 @@ namespace Core.ApplicationServices
             _actualLaunderer = actualLaunderer;
             _coordinates = coordinates;
             _personRepo = personRepo;
+            _personalAddressRepo = personalAddressRepo;
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
@@ -69,12 +72,24 @@ namespace Core.ApplicationServices
         {
             // Handle inserts
             var toBeInserted = apiPersons.Where(s => !_personRepo.AsQueryable().Select(d => d.CprNumber).Contains(s.CPR));
-            // todo insert logic
+            foreach (var apiPerson in toBeInserted)
+            {
+                var personToInsert = new Person();
+                personToInsert.IsAdmin = false;
+                personToInsert.RecieveMail = true;
+                mapAPIPerson(apiPerson, ref personToInsert);
+                _personRepo.Insert(personToInsert);
+            }
 
             // Handle updates
             var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
-            // todo update logic
-
+            foreach (var person in toBeUpdated)
+            {
+                var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
+                var personToUpdate = person;
+                mapAPIPerson(apiPerson, ref personToUpdate);
+                _personRepo.Update(personToUpdate);
+            }
 
             // Handle deletes
             var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
@@ -82,8 +97,32 @@ namespace Core.ApplicationServices
             {
                 personToBeDeleted.IsActive = false;
             }
+
             _personRepo.Save();
-                
+
+            // Attach personal addressses
+            foreach (var apiPerson in apiPersons)
+            {
+                UpdateHomeAddress(apiPerson);
+            }
+            _personalAddressRepo.Save();
+        }
+
+        private void mapAPIPerson(APIPerson apiPerson, ref Person personToInsert)
+        {
+            personToInsert.CprNumber = apiPerson.CPR;
+            personToInsert.FirstName = apiPerson.FirstName ?? "ikke opgivet";
+            personToInsert.LastName = apiPerson.LastName ?? "ikke opgivet";
+            personToInsert.Initials = apiPerson.Initials;
+            personToInsert.FullName = personToInsert.FirstName + " " + personToInsert.LastName;
+            if (personToInsert.Initials != null)
+            {
+                personToInsert.FullName += "[" + personToInsert.Initials + "]";
+            }
+            personToInsert.Mail = apiPerson.Email ?? "";
+            personToInsert.IsActive = true;
+
+            // TODO: handle employments
         }
 
         private OrgUnit mapAPIOrgUnit(APIOrgUnit apiOrgUnit, ref OrgUnit orgUnit)
@@ -184,5 +223,80 @@ namespace Core.ApplicationServices
             return result;
         }
 
+
+        /// <summary>
+        /// Updates home address for person identified by personId.
+        /// </summary>
+        /// <param name="empl"></param>
+        /// <param name="personId"></param>
+        public void UpdateHomeAddress(APIPerson apiPerson)
+        {
+            if (apiPerson.Address.Street == null)
+            {
+                return;
+            }
+
+            var person = _personRepo.AsQueryable().FirstOrDefault(x => x.CprNumber == apiPerson.CPR);
+            if (person == null)
+            {
+                throw new Exception("Person does not exist.");
+            }
+
+            var launderer = new CachedAddressLaunderer(_cachedRepo, _actualLaunderer, _coordinates);
+
+            var splitStreetAddress = SplitAddressOnNumber(apiPerson.Address.Street);
+
+            var addressToLaunder = new Address
+            {
+                Description = person.FullName,
+                StreetName = splitStreetAddress.ElementAt(0),
+                StreetNumber = splitStreetAddress.Count > 1 ? splitStreetAddress.ElementAt(1) : "1",
+                ZipCode = apiPerson.Address.PostalCode,
+                Town = apiPerson.Address.City ?? "",
+            };
+            addressToLaunder = launderer.Launder(addressToLaunder);
+
+            var launderedAddress = new PersonalAddress()
+            {
+                PersonId = person.Id,
+                Type = PersonalAddressType.Home,
+                StreetName = addressToLaunder.StreetName,
+                StreetNumber = addressToLaunder.StreetNumber,
+                ZipCode = addressToLaunder.ZipCode,
+                Town = addressToLaunder.Town,
+                Latitude = addressToLaunder.Latitude ?? "",
+                Longitude = addressToLaunder.Longitude ?? "",
+                Description = addressToLaunder.Description
+            };
+
+            var homeAddr = _personalAddressRepo.AsQueryable().FirstOrDefault(x => x.PersonId.Equals(person.Id) &&
+                x.Type == PersonalAddressType.Home);
+
+            if (homeAddr == null)
+            {
+                _personalAddressRepo.Insert(launderedAddress);
+            }
+            else
+            {
+                if (homeAddr != launderedAddress)
+                {
+                    // Address has changed
+                    // Change type of current (The one about to be changed) home address to OldHome.
+                    // Is done in loop because there was an error that created one or more home addresses for the same person.
+                    // This will make sure all home addresses are set to old if more than one exists.
+                    foreach (var addr in _personalAddressRepo.AsQueryable().Where(x => x.PersonId.Equals(person.Id) && x.Type == PersonalAddressType.Home).ToList())
+                    {
+                        addr.Type = PersonalAddressType.OldHome; ;
+                    }
+
+                    // Update actual current home address.
+                    _personalAddressRepo.Insert(launderedAddress);
+                    _personalAddressRepo.Save();
+                }
+            }
+        }
+
     }
+
+
 }
