@@ -68,10 +68,12 @@ namespace Core.ApplicationServices
         private void UpdatePersons(IEnumerable<APIPerson> apiPersons)
         {
             // Handle inserts
-            //var toBeInserted = apiPersons.Where(s => !_persons)
-
+            var toBeInserted = apiPersons.Where(s => !_personRepo.AsQueryable().Select(d => d.CprNumber).Contains(s.CPR));
+            // todo insert logic
 
             // Handle updates
+            var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
+            // todo update logic
 
 
             // Handle deletes
