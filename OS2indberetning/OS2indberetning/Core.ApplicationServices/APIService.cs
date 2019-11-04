@@ -1,4 +1,5 @@
-﻿using Core.DomainModel;
+﻿using Core.ApplicationServices.Interfaces;
+using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.Interfaces;
 using System;
@@ -15,6 +16,12 @@ namespace Core.ApplicationServices
         private readonly IAddressCoordinates _coordinates;
         private readonly IGenericRepository<Person> _personRepo;
         private readonly IGenericRepository<PersonalAddress> _personalAddressRepo;
+        private readonly AddressHistoryService _addressHistoryService;
+        private readonly ISubstituteService _subService;
+        private readonly IGenericRepository<Substitute> _subRepo;
+        private readonly IGenericRepository<Report> _reportRepo;
+        private readonly IReportService<Report> _reportService;
+        private readonly IGenericRepository<VacationBalance> _vacationBalanceRepo;
 
         public APIService(
             IGenericRepository<OrgUnit> orgUnitRepo,
@@ -22,7 +29,13 @@ namespace Core.ApplicationServices
             IAddressLaunderer actualLaunderer,
             IAddressCoordinates coordinates,
             IGenericRepository<Person> personRepo,
-            IGenericRepository<PersonalAddress> personalAddressRepo
+            IGenericRepository<PersonalAddress> personalAddressRepo,
+            AddressHistoryService addressHistoryService,
+            ISubstituteService subService,
+            IGenericRepository<Substitute> subRepo,
+            IGenericRepository<Report> reportRepo,
+            IReportService<Report> reportService,
+            IGenericRepository<VacationBalance> vacationBalanceRepo            
             )
         {
             _orgUnitRepo = orgUnitRepo;
@@ -31,12 +44,26 @@ namespace Core.ApplicationServices
             _coordinates = coordinates;
             _personRepo = personRepo;
             _personalAddressRepo = personalAddressRepo;
+            _addressHistoryService = addressHistoryService;
+            _subService = subService;
+            _subRepo = subRepo;
+            _reportRepo = reportRepo;
+            _reportService = reportService;
+            _vacationBalanceRepo = vacationBalanceRepo;
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
         {
-            //UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+            UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
             UpdatePersons(apiOrganizationDTO.Persons);
+            UpdateVacationBalances(apiOrganizationDTO.Persons);
+            // Todo block to look at when we include drive solution in this solution
+            // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
+            //_addressHistoryService.UpdateAddressHistories();
+            //_addressHistoryService.CreateNonExistingHistories();
+
+            UpdateLeadersOnExpiredOrActivatedSubstitutes();
+            AddLeadersToReportsThatHaveNone();
         }
 
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
@@ -96,6 +123,14 @@ namespace Core.ApplicationServices
             foreach (var personToBeDeleted in toBeDeleted)
             {
                 personToBeDeleted.IsActive = false;
+                foreach (var employment in personToBeDeleted.Employments)
+                {
+                    if (employment.EndDateTimestamp == 0 || employment.EndDateTimestamp > GetUnixTime(DateTime.Now.Date))
+                    {
+                        employment.EndDateTimestamp = GetUnixTime(DateTime.Now.Date);
+                    }                    
+                }
+                _personRepo.Update(personToBeDeleted);
             }
 
             _personRepo.Save();
@@ -108,21 +143,79 @@ namespace Core.ApplicationServices
             _personalAddressRepo.Save();
         }
 
+        private void UpdateVacationBalances(IEnumerable<APIPerson> persons)
+        {
+            foreach (var apiPerson in persons)
+            {
+                var person = _personRepo.AsQueryable().First(p => p.CprNumber == apiPerson.CPR);
+                foreach (var apiEmployment in apiPerson.Employments)
+                {
+                    var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
+                    var apiVacationBalance = apiEmployment.VacationBalance;
+                    
+                    var vacationBalance = _vacationBalanceRepo.AsQueryable().FirstOrDefault(
+                        x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
+
+                    if (vacationBalance == null)
+                    {
+                        vacationBalance = new VacationBalance
+                        {
+                            PersonId = person.Id,
+                            EmploymentId = employment.Id,
+                            Year = apiVacationBalance.VacationEarnedYear
+                        };
+                        _vacationBalanceRepo.Insert(vacationBalance);
+
+                        vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
+                        vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
+                        vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
+                        vacationBalance.UpdatedAt = GetUnixTime(DateTime.Now);
+                    }
+                }
+            }
+            _vacationBalanceRepo.Save();
+        }
+
         private void mapAPIPerson(APIPerson apiPerson, ref Person personToInsert)
         {
             personToInsert.CprNumber = apiPerson.CPR;
             personToInsert.FirstName = apiPerson.FirstName ?? "ikke opgivet";
             personToInsert.LastName = apiPerson.LastName ?? "ikke opgivet";
-            personToInsert.Initials = apiPerson.Initials;
+            personToInsert.Initials = apiPerson.Initials ?? "";
             personToInsert.FullName = personToInsert.FirstName + " " + personToInsert.LastName;
-            if (personToInsert.Initials != null)
+            if (!String.IsNullOrEmpty(personToInsert.Initials))
             {
                 personToInsert.FullName += "[" + personToInsert.Initials + "]";
             }
             personToInsert.Mail = apiPerson.Email ?? "";
             personToInsert.IsActive = true;
-
-            // TODO: handle employments
+            foreach(var existingEmployment in personToInsert.Employments.Where(e => e.EndDateTimestamp == 0 || e.EndDateTimestamp > GetUnixTime(DateTime.Now.Date)))
+            {
+                // if database active employment does not exist in source then set end date
+                if (!apiPerson.Employments.Select(s => s.EmployeeNumber).Contains(existingEmployment.EmploymentId.ToString())) 
+                {
+                    existingEmployment.EndDateTimestamp = GetUnixTime(DateTime.Now.Date);
+                }
+            }
+            foreach (var sourceEmployment in apiPerson.Employments)
+            {
+                var employment = personToInsert.Employments.Where(d => d.EmploymentId.ToString() == sourceEmployment.EmployeeNumber).FirstOrDefault();
+                if (employment == null)
+                {
+                    employment = new Employment();
+                    personToInsert.Employments.Add(employment);
+                }
+                var orgUnitId = _orgUnitRepo.AsQueryable().Where(o => o.OrgId.ToString() == sourceEmployment.OrgUnitId).Select(o => o.Id).First();
+                employment.OrgUnitId = orgUnitId;
+                employment.Position = sourceEmployment.Position ?? "";
+                employment.IsLeader = sourceEmployment.Manager;
+                employment.StartDateTimestamp = GetUnixTime( sourceEmployment.FromDate ?? DateTime.Now.Date );
+                employment.ExtraNumber = sourceEmployment.ExtraNumber ?? 0;
+                employment.EmploymentType = sourceEmployment.EmploymentType ?? 0;
+                employment.CostCenter = sourceEmployment.CostCenter == null ? 0 : long.Parse(sourceEmployment.CostCenter);
+                employment.EmploymentId = int.Parse(sourceEmployment.EmployeeNumber);
+                employment.EndDateTimestamp = sourceEmployment.ToDate == null ? 0 : GetUnixTime( sourceEmployment.ToDate.Value.AddDays(1) );
+            }
         }
 
         private OrgUnit mapAPIOrgUnit(APIOrgUnit apiOrgUnit, ref OrgUnit orgUnit)
@@ -140,6 +233,11 @@ namespace Core.ApplicationServices
                 orgUnit.Address = workAddress;
             }
             return orgUnit;
+        }
+
+        private long GetUnixTime(DateTime dateTime)
+        {
+            return (Int32)(dateTime.Subtract(new DateTime(1970, 1, 1).Date)).TotalSeconds;
         }
 
 
@@ -223,6 +321,45 @@ namespace Core.ApplicationServices
             return result;
         }
 
+        /// <summary>
+        /// Updates ResponsibleLeader on all reports that had a substitute which expired yesterday or became active today.
+        /// </summary>
+        public void UpdateLeadersOnExpiredOrActivatedSubstitutes()
+        {
+            // TODO Find something more generic for updating drive and vacation reports.
+            var yesterdayTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1).AddDays(1))).TotalSeconds;
+            var currentTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+            var endOfDayStamp = _subService.GetEndOfDayTimestamp(yesterdayTimestamp);
+            var startOfDayStamp = _subService.GetStartOfDayTimestamp(currentTimestamp);
+
+            var affectedSubstitutes = _subRepo.AsQueryable().Where(s => (s.EndDateTimestamp == endOfDayStamp) || (s.StartDateTimestamp == startOfDayStamp)).ToList();
+            Console.WriteLine(affectedSubstitutes.Count() + " substitutes have expired or become active. Updating affected reports.");
+            foreach (var sub in affectedSubstitutes)
+            {
+                _subService.UpdateReportsAffectedBySubstitute(sub);
+            }
+        }
+
+        public void AddLeadersToReportsThatHaveNone()
+        {
+            // Fail-safe as some reports for unknown reasons have not had a leader attached
+            Console.WriteLine("Adding leaders to drive reports that have none");
+            var i = 0;
+            var reports = _reportRepo.AsQueryable().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
+            foreach (var report in reports)
+            {
+                i++;
+                report.ResponsibleLeaderId = _reportService.GetResponsibleLeaderForReport(report).Id;
+                report.ActualLeaderId = _reportService.GetActualLeaderForReport(report).Id;
+                if (i % 100 == 0)
+                {
+                    Console.WriteLine("Saving to database");
+                    _reportRepo.Save();
+                }
+            }
+            _reportRepo.Save();
+        }
 
         /// <summary>
         /// Updates home address for person identified by personId.

@@ -16,10 +16,10 @@ namespace Core.ApplicationServices
         protected readonly IGenericRepository<Substitute> _substituteRepository;
         protected readonly IMailSender _mailSender;
         protected readonly IGenericRepository<T> _reportRepo;
-        protected readonly ILogger _logger;
+        protected readonly ILogger<ReportService<T>> _logger;
 
         public ReportService(IMailSender mailSender, IGenericRepository<OrgUnit> orgUnitRepository,
-            IGenericRepository<Employment> employmentRepository, IGenericRepository<Substitute> substituteRepository, ILogger logger, IGenericRepository<T> reportRepo)
+            IGenericRepository<Employment> employmentRepository, IGenericRepository<Substitute> substituteRepository, ILogger<ReportService<T>> logger, IGenericRepository<T> reportRepo)
         {
             _orgUnitRepository = orgUnitRepository;
             _employmentRepository = employmentRepository;
