@@ -48,7 +48,6 @@ namespace Presentation.Web.Config
             services.AddScoped<IDriveReportService,DriveReportService>();
             services.AddScoped<IKMDAbsenceService,KMDAbsenceService>();
             services.AddScoped<IKMDAbsenceReportBuilder,KMDAbsenceReportBuilder>();
-            services.AddScoped<ICustomSettings,CustomSettings>();
             services.AddScoped<APIService>();
             services.AddScoped<AddressHistoryService>();
             return services;
