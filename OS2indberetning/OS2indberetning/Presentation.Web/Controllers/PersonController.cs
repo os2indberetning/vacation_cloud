@@ -262,8 +262,8 @@ namespace OS2Indberetning.Controllers
                 orgs.AddRange(_orgService.GetWhereUserIsResponsible(sub.PersonId));
             }
 
-            var people = _reportRepo.AsNoTracking().Where(x => x.ResponsibleLeaderId == CurrentUser.Id && x.Status == ReportStatus.Pending).Select(x => x.Person).Distinct().ToList();
-
+            var people = _reportRepo.AsQueryable().Where(x => x.ResponsibleLeaderId == CurrentUser.Id && x.Status == ReportStatus.Pending).Select(x => x.Person).Distinct().ToList();
+           
             foreach (var org in orgs)
             {
                 foreach (var person in org.Employments.Where(x => (x.EndDateTimestamp == 0 || x.EndDateTimestamp >= currentTimestamp) && people.All(y => y.Id != x.PersonId) && x.PersonId != CurrentUser.Id).Select(x => x.Person))
@@ -276,7 +276,7 @@ namespace OS2Indberetning.Controllers
                 foreach(var leaderId in leadersIds)
                 {
                     var leader = Repo.AsQueryable().FirstOrDefault(x => x.Id == leaderId);
-                    if (leader != null && !people.Contains(leader))
+                    if (leader != null && !people.Exists(p => p.Id == leader.Id))
                     {
                         people.Add(leader);
                     }

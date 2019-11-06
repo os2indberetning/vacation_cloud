@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace OS2Indberetning.Controllers
@@ -9,10 +8,10 @@ namespace OS2Indberetning.Controllers
     [Route("api/[controller]")]
     public class HelpTextController : Controller
     {
-        private IConfiguration _config;
+        private IEnumerable<KeyValuePair<string, string>> _helpTextConfig;
         public HelpTextController(IConfiguration config)
         {
-            _config = config;
+            _helpTextConfig = config.GetSection("HelpText").AsEnumerable().Select(c => new KeyValuePair<string, string>(c.Key.Replace("HelpText:", ""), c.Value));            
         }
 
         // GET api/<controller>/5
@@ -25,22 +24,7 @@ namespace OS2Indberetning.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
-            try
-            {
-                // Do not allow returning of keys that start with PROTECTED.
-                if (id.IndexOf("PROTECTED", StringComparison.Ordinal) > -1)
-                {
-                    // If the key contains PROTECTED, then return forbidden.
-                    return StatusCode(StatusCodes.Status403Forbidden);
-                }
-                // If the key doesnt contain protected, then return the result.
-                var res = _config[id];
-                return Ok(res);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, e);
-            }
+            return Ok(_helpTextConfig.Where(c => c.Key == id).Select(c => c.Value).First());
         }
 
         /// <summary>
@@ -49,16 +33,8 @@ namespace OS2Indberetning.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         public IActionResult GetAll()
-        {
-            try
-            {
-                var res = _config.AsEnumerable().Where(kv => !kv.Key.Contains("PROTECTED")).ToList();
-                return Ok(res);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, e);
-            }
+        {            
+            return Ok(_helpTextConfig);
         }
     }
 }

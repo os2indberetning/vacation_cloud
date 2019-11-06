@@ -62,7 +62,7 @@ namespace Core.ApplicationServices
             {
                 var parent = orgUnit.Parent;
                 empl = _emplRepo.AsQueryable().FirstOrDefault(x => x.IsLeader && x.OrgUnitId == parent.Id);
-                while (empl == null && parent.Level > 0)
+                while (empl == null && parent.ParentId != null )
                 {
                     parent = parent.Parent;
                     empl = _emplRepo.AsQueryable().FirstOrDefault(x => x.IsLeader && x.OrgUnitId == parent.Id);

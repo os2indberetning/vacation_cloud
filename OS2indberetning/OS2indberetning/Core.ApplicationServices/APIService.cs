@@ -104,6 +104,7 @@ namespace Core.ApplicationServices
                 var personToInsert = new Person();
                 personToInsert.IsAdmin = false;
                 personToInsert.RecieveMail = true;
+                personToInsert.Employments = new List<Employment>();
                 mapAPIPerson(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
             }
