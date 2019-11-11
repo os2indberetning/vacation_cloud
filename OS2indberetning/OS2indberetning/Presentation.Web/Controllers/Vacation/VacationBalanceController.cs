@@ -128,7 +128,8 @@ namespace OS2Indberetning.Controllers.Vacation
                 totalBalance.VacationHours += balance.VacationHours;
                 totalBalance.TotalVacationHours += balance.TotalVacationHours;
                 totalBalance.TransferredHours += balance.TransferredHours;
-                
+                totalBalance.UpdatedAt += balance.UpdatedAt;
+                totalBalance.Year += balance.Year;
             }
 
             return Ok(totalBalance);
