@@ -45,7 +45,6 @@ namespace Presentation.Web
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseMvc(r => RouteConfig.Use(r));
             app.UseStaticFiles();
