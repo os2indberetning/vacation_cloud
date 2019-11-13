@@ -20,6 +20,7 @@ namespace Presentation.Web
                     logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                     logging.AddDebug();
                 })
+                .UseConfiguration(new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build())
                 .UseStartup<Startup>();
     }
 }
