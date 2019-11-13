@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Presentation.Web
 {
@@ -14,13 +15,14 @@ namespace Presentation.Web
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseConfiguration(new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build())
                 .ConfigureLogging((hostingContext, logging) =>
                 {
                     logging.ClearProviders();
                     logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                    logging.AddConsole();
                     logging.AddDebug();
                 })
-                .UseConfiguration(new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build())
                 .UseStartup<Startup>();
     }
 }
