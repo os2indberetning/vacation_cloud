@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Presentation.Web.Pages
 {
-    public class indexModel : PageModel
+    public class IndexModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         public string Version { get; set; }
-        public indexModel(SignInManager<IdentityUser> signInManager, IConfiguration Configuration)
+        public IndexModel(SignInManager<IdentityUser> signInManager, IConfiguration Configuration)
         {
             _signInManager = signInManager;
             Version = Configuration.GetValue<string>("Version");
