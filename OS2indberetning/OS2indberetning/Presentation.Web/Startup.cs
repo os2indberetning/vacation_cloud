@@ -1,6 +1,7 @@
 ﻿using Infrastructure.DataAccess;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Presentation.Web.Auth;
 using Presentation.Web.Config;
+using System.IO;
 
 namespace Presentation.Web
 {
@@ -24,6 +26,7 @@ namespace Presentation.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDependencies(Configuration);
+            services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(Configuration["DataProtectionPath"]));
             services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<DataContext>();
             services.AddOData();
             services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
