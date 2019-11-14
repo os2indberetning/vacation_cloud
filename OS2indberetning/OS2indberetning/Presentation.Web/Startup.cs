@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Presentation.Web.Auth;
@@ -47,11 +48,19 @@ namespace Presentation.Web
             {
                 app.UseHsts();
             }
-
+            InitializeDatabase(app);
             app.UseAuthentication();
             app.UseMvc(r => RouteConfig.Use(r));
             app.UseStaticFiles();
             app.UseFileServer(enableDirectoryBrowsing: false);
+        }
+
+        private void InitializeDatabase(IApplicationBuilder app)
+        {
+            using (var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                scope.ServiceProvider.GetRequiredService<DataContext>().Database.Migrate();
+            }
         }
     }
 }
