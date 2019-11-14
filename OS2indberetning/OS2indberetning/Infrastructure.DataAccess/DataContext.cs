@@ -7,6 +7,8 @@ namespace Infrastructure.DataAccess
 {
     public class DataContext : DbContext
     {
+        public DataContext(DbContextOptions options) : base(options){}
+
         public DbSet<Person> Persons { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<PersonalAddress> PersonalAddresses { get; set; }
