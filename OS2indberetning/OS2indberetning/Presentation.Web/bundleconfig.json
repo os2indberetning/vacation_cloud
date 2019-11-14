@@ -52,7 +52,10 @@
   },
   {
     "outputFileName": "wwwroot/Bundles/app.js",
-    "inputFiles": ["wwwroot/App/**/*.js"],
+    "inputFiles": [
+      "wwwroot/App/app.js",
+      "wwwroot/App/**/*.js"
+    ],
     "minify": {
       "enabled": true,
       "renameLocals": true
