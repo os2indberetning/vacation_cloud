@@ -54,13 +54,9 @@
     "outputFileName": "wwwroot/Bundles/app.js",
     "inputFiles": [
       "wwwroot/App/app.js",
-      "wwwroot/App/*.js",
-      "wwwroot/App/Core/app.core.js",
-      "wwwroot/App/Core/**/*.js",
       "wwwroot/App/Drive/app.drive.js",
-      "wwwroot/App/Drive/**/*.js",
       "wwwroot/App/Vacation/app.vacation.js",
-      "wwwroot/App/Vacation/**/*.js"
+      "wwwroot/App/**/*.js"
     ],
     "minify": {
       "enabled": true,
