@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infrastructure.DataAccess.Migrations
 {
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -428,7 +428,6 @@ namespace Infrastructure.DataAccess.Migrations
                     OrgId = table.Column<int>(nullable: false),
                     ShortDescription = table.Column<string>(nullable: false),
                     LongDescription = table.Column<string>(nullable: true),
-                    Level = table.Column<int>(nullable: false),
                     ParentId = table.Column<int>(nullable: true),
                     HasAccessToFourKmRule = table.Column<bool>(nullable: false),
                     DefaultKilometerAllowance = table.Column<int>(nullable: false),

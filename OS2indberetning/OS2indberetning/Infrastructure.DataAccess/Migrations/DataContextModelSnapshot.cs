@@ -255,8 +255,6 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.Property<bool>("HasAccessToVacation");
 
-                    b.Property<int>("Level");
-
                     b.Property<string>("LongDescription");
 
                     b.Property<int>("OrgId");
