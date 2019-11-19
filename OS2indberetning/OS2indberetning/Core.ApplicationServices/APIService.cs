@@ -190,7 +190,11 @@ namespace Core.ApplicationServices
             {
                 personToInsert.FullName += "[" + personToInsert.Initials + "]";
             }
-            personToInsert.Mail = apiPerson.Email ?? "";
+            // only update email if supplied
+            if (apiPerson.Email != null || personToInsert.Mail == null)
+            {
+                personToInsert.Mail = apiPerson.Email ?? "";
+            }            
             personToInsert.IsActive = true;
             foreach(var existingEmployment in personToInsert.Employments.Where(e => e.EndDateTimestamp == 0 || e.EndDateTimestamp > GetUnixTime(DateTime.Now.Date)))
             {
