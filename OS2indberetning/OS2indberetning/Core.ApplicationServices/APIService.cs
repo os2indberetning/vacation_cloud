@@ -172,7 +172,7 @@ namespace Core.ApplicationServices
                         vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
                         vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
                         vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
-                        vacationBalance.UpdatedAt = GetUnixTime(DateTime.Now);
+                        vacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);
                     }
                 }
             }
