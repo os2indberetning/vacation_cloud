@@ -151,26 +151,29 @@ namespace Core.ApplicationServices
                 var person = _personRepo.AsQueryable().First(p => p.CprNumber == apiPerson.CPR);
                 foreach (var apiEmployment in apiPerson.Employments)
                 {
-                    var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
                     var apiVacationBalance = apiEmployment.VacationBalance;
-                    
-                    var vacationBalance = _vacationBalanceRepo.AsQueryable().FirstOrDefault(
-                        x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
-
-                    if (vacationBalance == null)
+                    if (apiVacationBalance != null)
                     {
-                        vacationBalance = new VacationBalance
+                        var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
+
+                        var vacationBalance = _vacationBalanceRepo.AsQueryable().FirstOrDefault(
+                            x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
+
+                        if (vacationBalance == null)
                         {
-                            PersonId = person.Id,
-                            EmploymentId = employment.Id,
-                            Year = apiVacationBalance.VacationEarnedYear
-                        };
-                        _vacationBalanceRepo.Insert(vacationBalance);
+                            vacationBalance = new VacationBalance
+                            {
+                                PersonId = person.Id,
+                                EmploymentId = employment.Id,
+                                Year = apiVacationBalance.VacationEarnedYear
+                            };
+                            _vacationBalanceRepo.Insert(vacationBalance);
+                        }
+                        vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
+                        vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
+                        vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
+                        vacationBalance.UpdatedAt = GetUnixTime(DateTime.Now);
                     }
-                    vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
-                    vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
-                    vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
-                    vacationBalance.UpdatedAt = GetUnixTime(DateTime.Now);
                 }
             }
             _vacationBalanceRepo.Save();
