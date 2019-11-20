@@ -88,14 +88,15 @@ namespace Core.ApplicationServices
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
         {
             // Handle inserts
-            var toBeInserted = apiOrgUnits.Where(s => !_orgUnitRepo.AsQueryable().Select(d => d.OrgId.ToString()).Contains(s.Id));
-            _logger.LogDebug("Orgunits to be inserted: {0}", toBeInserted.Count());
+            var toBeInserted = apiOrgUnits.Where(s => !_orgUnitRepo.AsNoTracking().Select(d => d.OrgId.ToString()).Contains(s.Id));
+            var insertTotal = toBeInserted.Count();
             var insertCounter = 0;
+            _logger.LogDebug("Orgunits to be inserted: {0}", insertTotal);
             foreach (var apiOrgUnit in toBeInserted)
             {
                 if (++insertCounter % 10 == 0)
                 {
-                    _logger.LogDebug("Inserting orgunit {0} of {1}", insertCounter, toBeInserted.Count());
+                    _logger.LogDebug("Inserting orgunit {0} of {1}", insertCounter, insertTotal);
                 }
                 var orgToInsert = new OrgUnit();
                 orgToInsert.HasAccessToFourKmRule = false;
@@ -112,14 +113,15 @@ namespace Core.ApplicationServices
             }
 
             // Handle updates
-            var toBeUpdated = _orgUnitRepo.AsQueryable().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString()));
-            _logger.LogDebug("Orgunits to be updated: {0}", toBeUpdated.Count());
+            var toBeUpdated = _orgUnitRepo.AsNoTracking().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString()));
+            var updateTotal = toBeUpdated.Count();
             var updateCounter = 0;
+            _logger.LogDebug("Orgunits to be updated: {0}", updateTotal);
             foreach (var orgUnit in toBeUpdated)
             {
                 if (++updateCounter % 10 == 0)
                 {
-                    _logger.LogDebug("Updating orgunit {0} of {1}",updateCounter, toBeUpdated.Count());
+                    _logger.LogDebug("Updating orgunit {0} of {1}",updateCounter, updateTotal);
                 }
                 var apiOrgUnit = apiOrgUnits.Where(s => s.Id == orgUnit.OrgId.ToString()).First();
                 var orgToUpdate = orgUnit;
@@ -139,14 +141,15 @@ namespace Core.ApplicationServices
         private void UpdatePersons(IEnumerable<APIPerson> apiPersons)
         {
             // Handle inserts
-            var toBeInserted = apiPersons.Where(s => !_personRepo.AsQueryable().Select(d => d.CprNumber).Contains(s.CPR));
-            _logger.LogDebug("Persons to be inserted: {0}", toBeInserted.Count());
+            var toBeInserted = apiPersons.Where(s => !_personRepo.AsNoTracking().Select(d => d.CprNumber).Contains(s.CPR));
+            var insertTotal = toBeInserted.Count();
             var insertCounter = 0;
+            _logger.LogDebug("Persons to be inserted: {0}", insertTotal);
             foreach (var apiPerson in toBeInserted)
             {
                 if (++insertCounter % 10 == 0)
                 {
-                    _logger.LogDebug("Inserting person {0} of {1}", insertCounter, toBeInserted.Count());
+                    _logger.LogDebug("Inserting person {0} of {1}", insertCounter, insertTotal);
                 }
                 var personToInsert = new Person();
                 personToInsert.IsAdmin = false;
@@ -158,14 +161,15 @@ namespace Core.ApplicationServices
             }
 
             // Handle updates
-            var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
-            _logger.LogDebug("Persons to be updated: {0}", toBeUpdated.Count());
+            var toBeUpdated = _personRepo.AsNoTracking().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
+            var updateTotal = toBeUpdated.Count();
             var updateCounter = 0;
+            _logger.LogDebug("Persons to be updated: {0}", updateTotal);
             foreach (var person in toBeUpdated)
             {
                 if (++updateCounter % 10 == 0)
                 {
-                    _logger.LogDebug("Updating person {0} of {1}", updateCounter, toBeUpdated.Count());
+                    _logger.LogDebug("Updating person {0} of {1}", updateCounter, updateTotal);
                 }
                 var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                 var personToUpdate = person;
@@ -175,14 +179,15 @@ namespace Core.ApplicationServices
             }
 
             // Handle deletes
-            var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
-            _logger.LogDebug("Persons to be inactivated: {0}", toBeDeleted.Count());
+            var toBeDeleted = _personRepo.AsNoTracking().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
+            var deleteTotal = toBeDeleted.Count();
             var deleteCounter = 0;
+            _logger.LogDebug("Persons to be inactivated: {0}", deleteTotal);
             foreach (var personToBeDeleted in toBeDeleted)
             {
                 if (++deleteCounter % 10 == 0)
                 {
-                    _logger.LogDebug("Inactivating person {0} of {1}", deleteCounter, toBeDeleted.Count());
+                    _logger.LogDebug("Inactivating person {0} of {1}", deleteCounter, deleteTotal);
                 }
                 personToBeDeleted.IsActive = false;
                 foreach (var employment in personToBeDeleted.Employments)
@@ -210,7 +215,7 @@ namespace Core.ApplicationServices
         {
             foreach (var apiPerson in persons)
             {
-                var person = _personRepo.AsQueryable().First(p => p.CprNumber == apiPerson.CPR);
+                var person = _personRepo.AsNoTracking().First(p => p.CprNumber == apiPerson.CPR);
                 foreach (var apiEmployment in apiPerson.Employments)
                 {
                     var apiVacationBalance = apiEmployment.VacationBalance;
@@ -218,7 +223,7 @@ namespace Core.ApplicationServices
                     {
                         var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
 
-                        var vacationBalance = _vacationBalanceRepo.AsQueryable().FirstOrDefault(
+                        var vacationBalance = _vacationBalanceRepo.AsNoTracking().FirstOrDefault(
                             x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
 
                         if (vacationBalance == null)
@@ -274,7 +279,7 @@ namespace Core.ApplicationServices
                     employment = new Employment();
                     personToInsert.Employments.Add(employment);
                 }
-                var orgUnitId = _orgUnitRepo.AsQueryable().Where(o => o.OrgId.ToString() == sourceEmployment.OrgUnitId).Select(o => o.Id).First();
+                var orgUnitId = _orgUnitRepo.AsNoTracking().Where(o => o.OrgId.ToString() == sourceEmployment.OrgUnitId).Select(o => o.Id).First();
                 employment.OrgUnitId = orgUnitId;
                 employment.Position = sourceEmployment.Position ?? "";
                 employment.IsLeader = sourceEmployment.Manager;
@@ -292,7 +297,7 @@ namespace Core.ApplicationServices
             orgUnit.OrgId = int.Parse(apiOrgUnit.Id);
             if (!String.IsNullOrEmpty(apiOrgUnit.ParentId))
             {
-                orgUnit.ParentId = _orgUnitRepo.AsQueryable().Where(o => o.OrgId.ToString() == apiOrgUnit.ParentId).Select(o => o.Id).First();
+                orgUnit.ParentId = _orgUnitRepo.AsNoTracking().Where(o => o.OrgId.ToString() == apiOrgUnit.ParentId).Select(o => o.Id).First();
             }
             orgUnit.ShortDescription = apiOrgUnit.Name;
             orgUnit.LongDescription = apiOrgUnit.Name;
@@ -348,7 +353,7 @@ namespace Core.ApplicationServices
                 Description = apiOrgunit.Name
             };
 
-            var existingOrg = _orgUnitRepo.AsQueryable().FirstOrDefault(x => x.OrgId.Equals(apiOrgunit.Id));
+            var existingOrg = _orgUnitRepo.AsNoTracking().FirstOrDefault(x => x.OrgId.Equals(apiOrgunit.Id));
 
             // If the address hasn't changed then set the Id to be the same as the existing one.
             // That way a new address won't be created in the database.
@@ -402,7 +407,7 @@ namespace Core.ApplicationServices
             var endOfDayStamp = _subService.GetEndOfDayTimestamp(yesterdayTimestamp);
             var startOfDayStamp = _subService.GetStartOfDayTimestamp(currentTimestamp);
 
-            var affectedSubstitutes = _subRepo.AsQueryable().Where(s => (s.EndDateTimestamp == endOfDayStamp) || (s.StartDateTimestamp == startOfDayStamp)).ToList();
+            var affectedSubstitutes = _subRepo.AsNoTracking().Where(s => (s.EndDateTimestamp == endOfDayStamp) || (s.StartDateTimestamp == startOfDayStamp)).ToList();
             Console.WriteLine(affectedSubstitutes.Count() + " substitutes have expired or become active. Updating affected reports.");
             foreach (var sub in affectedSubstitutes)
             {
@@ -415,7 +420,7 @@ namespace Core.ApplicationServices
             // Fail-safe as some reports for unknown reasons have not had a leader attached
             Console.WriteLine("Adding leaders to drive reports that have none");
             var i = 0;
-            var reports = _reportRepo.AsQueryable().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
+            var reports = _reportRepo.AsNoTracking().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
             foreach (var report in reports)
             {
                 i++;
@@ -442,7 +447,7 @@ namespace Core.ApplicationServices
                 return;
             }
 
-            var person = _personRepo.AsQueryable().FirstOrDefault(x => x.CprNumber == apiPerson.CPR);
+            var person = _personRepo.AsNoTracking().FirstOrDefault(x => x.CprNumber == apiPerson.CPR);
             if (person == null)
             {
                 throw new Exception("Person does not exist.");
@@ -475,7 +480,7 @@ namespace Core.ApplicationServices
                 Description = addressToLaunder.Description
             };
 
-            var homeAddr = _personalAddressRepo.AsQueryable().FirstOrDefault(x => x.PersonId.Equals(person.Id) &&
+            var homeAddr = _personalAddressRepo.AsNoTracking().FirstOrDefault(x => x.PersonId.Equals(person.Id) &&
                 x.Type == PersonalAddressType.Home);
 
             if (homeAddr == null)
@@ -490,7 +495,7 @@ namespace Core.ApplicationServices
                     // Change type of current (The one about to be changed) home address to OldHome.
                     // Is done in loop because there was an error that created one or more home addresses for the same person.
                     // This will make sure all home addresses are set to old if more than one exists.
-                    foreach (var addr in _personalAddressRepo.AsQueryable().Where(x => x.PersonId.Equals(person.Id) && x.Type == PersonalAddressType.Home).ToList())
+                    foreach (var addr in _personalAddressRepo.AsNoTracking().Where(x => x.PersonId.Equals(person.Id) && x.Type == PersonalAddressType.Home).ToList())
                     {
                         addr.Type = PersonalAddressType.OldHome; ;
                     }
