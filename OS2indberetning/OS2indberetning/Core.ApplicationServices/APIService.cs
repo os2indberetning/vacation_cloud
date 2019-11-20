@@ -11,6 +11,7 @@ namespace Core.ApplicationServices
 {
     public class APIService
     {
+        private static Boolean isUpdating = false;
         private readonly IGenericRepository<OrgUnit> _orgUnitRepo;
         private readonly IGenericRepository<CachedAddress> _cachedRepo;
         private readonly IAddressLaunderer _actualLaunderer;
@@ -58,21 +59,30 @@ namespace Core.ApplicationServices
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
         {
-            _logger.LogInformation("Updating OrgUnits");
-            UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
-            _logger.LogInformation("Updating Persons");
-            UpdatePersons(apiOrganizationDTO.Persons);
-            _logger.LogInformation("Updating Vacation Balance");
-            UpdateVacationBalances(apiOrganizationDTO.Persons);
-            // Todo block to look at when we include drive solution in this solution
-            // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
-            //_addressHistoryService.UpdateAddressHistories();
-            //_addressHistoryService.CreateNonExistingHistories();
-            _logger.LogInformation("Updating leaders on expired or activated substitutes");
-            UpdateLeadersOnExpiredOrActivatedSubstitutes();
-            _logger.LogInformation("Adding leaders to reports that have none");
-            AddLeadersToReportsThatHaveNone();
-            _logger.LogInformation("Update complete");
+            if (isUpdating)
+            {
+                throw new Exception("UpdateOrganization cancelled because it is already updating");
+            }
+            else
+            {
+                isUpdating = true;
+                _logger.LogInformation("Updating OrgUnits");
+                UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+                _logger.LogInformation("Updating Persons");
+                UpdatePersons(apiOrganizationDTO.Persons);
+                _logger.LogInformation("Updating Vacation Balance");
+                UpdateVacationBalances(apiOrganizationDTO.Persons);
+                // Todo block to look at when we include drive solution in this solution
+                // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
+                //_addressHistoryService.UpdateAddressHistories();
+                //_addressHistoryService.CreateNonExistingHistories();
+                _logger.LogInformation("Updating leaders on expired or activated substitutes");
+                UpdateLeadersOnExpiredOrActivatedSubstitutes();
+                _logger.LogInformation("Adding leaders to reports that have none");
+                AddLeadersToReportsThatHaveNone();
+                _logger.LogInformation("Update complete");
+                isUpdating = false;
+            }
         }
 
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
