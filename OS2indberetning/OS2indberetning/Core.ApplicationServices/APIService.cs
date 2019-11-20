@@ -2,6 +2,7 @@
 using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.Interfaces;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace Core.ApplicationServices
         private readonly IGenericRepository<Report> _reportRepo;
         private readonly IReportService<Report> _reportService;
         private readonly IGenericRepository<VacationBalance> _vacationBalanceRepo;
+        private readonly ILogger<APIService> _logger;
 
         public APIService(
             IGenericRepository<OrgUnit> orgUnitRepo,
@@ -35,7 +37,8 @@ namespace Core.ApplicationServices
             IGenericRepository<Substitute> subRepo,
             IGenericRepository<Report> reportRepo,
             IReportService<Report> reportService,
-            IGenericRepository<VacationBalance> vacationBalanceRepo            
+            IGenericRepository<VacationBalance> vacationBalanceRepo,
+            ILogger<APIService> logger
             )
         {
             _orgUnitRepo = orgUnitRepo;
@@ -50,44 +53,72 @@ namespace Core.ApplicationServices
             _reportRepo = reportRepo;
             _reportService = reportService;
             _vacationBalanceRepo = vacationBalanceRepo;
+            _logger = logger;
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
         {
+            _logger.LogInformation("Updating OrgUnits");
             UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+            _logger.LogInformation("Updating Persons");
             UpdatePersons(apiOrganizationDTO.Persons);
+            _logger.LogInformation("Updating Vacation Balance");
             UpdateVacationBalances(apiOrganizationDTO.Persons);
             // Todo block to look at when we include drive solution in this solution
             // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
             //_addressHistoryService.UpdateAddressHistories();
             //_addressHistoryService.CreateNonExistingHistories();
-
+            _logger.LogInformation("Updating leaders on expired or activated substitutes");
             UpdateLeadersOnExpiredOrActivatedSubstitutes();
+            _logger.LogInformation("Adding leaders to reports that have none");
             AddLeadersToReportsThatHaveNone();
+            _logger.LogInformation("Update complete");
         }
 
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
         {
             // Handle inserts
             var toBeInserted = apiOrgUnits.Where(s => !_orgUnitRepo.AsQueryable().Select(d => d.OrgId.ToString()).Contains(s.Id));
+            _logger.LogDebug("Orgunits to be inserted: {0}", toBeInserted.Count());
+            var insertCounter = 0;
             foreach (var apiOrgUnit in toBeInserted)
             {
+                if (++insertCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Inserting orgunit {0} of {1}", insertCounter, toBeInserted.Count());
+                }
                 var orgToInsert = new OrgUnit();
                 orgToInsert.HasAccessToFourKmRule = false;
                 orgToInsert.HasAccessToVacation = false;
                 orgToInsert.DefaultKilometerAllowance = KilometerAllowance.Calculated;
                 mapAPIOrgUnit(apiOrgUnit,ref orgToInsert);
+                if (orgToInsert.Address == null)
+                {
+                    _logger.LogWarning("Skipping orgunit insert because it has no address. OrgId: {0} Name: {1}", orgToInsert.OrgId, orgToInsert.LongDescription);
+                    continue;
+                }
                 _orgUnitRepo.Insert(orgToInsert);
                 _orgUnitRepo.Save();
             }
 
             // Handle updates
             var toBeUpdated = _orgUnitRepo.AsQueryable().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString()));
+            _logger.LogDebug("Orgunits to be updated: {0}", toBeUpdated.Count());
+            var updateCounter = 0;
             foreach (var orgUnit in toBeUpdated)
             {
+                if (++updateCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Updating orgunit {0} of {1}",updateCounter, toBeUpdated.Count());
+                }
                 var apiOrgUnit = apiOrgUnits.Where(s => s.Id == orgUnit.OrgId.ToString()).First();
                 var orgToUpdate = orgUnit;
                 mapAPIOrgUnit(apiOrgUnit, ref orgToUpdate);
+                if (orgToUpdate.Address == null)
+                {
+                    _logger.LogWarning("Skipping orgunit update because it has no address. OrgId: {0} Name: {1}", orgToUpdate.OrgId, orgToUpdate.LongDescription);
+                    continue;
+                }
                 _orgUnitRepo.Update(orgToUpdate);
                 _orgUnitRepo.Save();
             }
@@ -99,30 +130,50 @@ namespace Core.ApplicationServices
         {
             // Handle inserts
             var toBeInserted = apiPersons.Where(s => !_personRepo.AsQueryable().Select(d => d.CprNumber).Contains(s.CPR));
+            _logger.LogDebug("Persons to be inserted: {0}", toBeInserted.Count());
+            var insertCounter = 0;
             foreach (var apiPerson in toBeInserted)
             {
+                if (++insertCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Inserting person {0} of {1}", insertCounter, toBeInserted.Count());
+                }
                 var personToInsert = new Person();
                 personToInsert.IsAdmin = false;
                 personToInsert.RecieveMail = true;
                 personToInsert.Employments = new List<Employment>();
                 mapAPIPerson(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
+                _personRepo.Save();
             }
 
             // Handle updates
             var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
+            _logger.LogDebug("Persons to be updated: {0}", toBeUpdated.Count());
+            var updateCounter = 0;
             foreach (var person in toBeUpdated)
             {
+                if (++updateCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Updating person {0} of {1}", updateCounter, toBeUpdated.Count());
+                }
                 var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                 var personToUpdate = person;
                 mapAPIPerson(apiPerson, ref personToUpdate);
                 _personRepo.Update(personToUpdate);
+                _personRepo.Save();
             }
 
             // Handle deletes
             var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
+            _logger.LogDebug("Persons to be inactivated: {0}", toBeDeleted.Count());
+            var deleteCounter = 0;
             foreach (var personToBeDeleted in toBeDeleted)
             {
+                if (++deleteCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Inactivating person {0} of {1}", deleteCounter, toBeDeleted.Count());
+                }
                 personToBeDeleted.IsActive = false;
                 foreach (var employment in personToBeDeleted.Employments)
                 {
@@ -132,13 +183,14 @@ namespace Core.ApplicationServices
                     }                    
                 }
                 _personRepo.Update(personToBeDeleted);
+                _personRepo.Save();
             }
 
-            _personRepo.Save();
 
             // Attach personal addressses
             foreach (var apiPerson in apiPersons)
             {
+                _logger.LogInformation("Updating persons home addresses");
                 UpdateHomeAddress(apiPerson);
             }
             _personalAddressRepo.Save();
@@ -375,7 +427,7 @@ namespace Core.ApplicationServices
         /// <param name="personId"></param>
         public void UpdateHomeAddress(APIPerson apiPerson)
         {
-            if (apiPerson.Address.Street == null)
+            if (apiPerson.Address?.Street == null)
             {
                 return;
             }

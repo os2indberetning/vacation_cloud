@@ -20,6 +20,11 @@ namespace Infrastructure.AddressServices
         /// <returns>Corrected address.</returns>
         public Address LaunderAddress(Address address)
         {
+            if( String.IsNullOrWhiteSpace(address.StreetName) )
+            {
+                throw new AddressLaunderingException("The laundering process did not return any elements because the streetname was blank", 0);
+            }
+
             var request = CreateRequest(address.StreetName, address.StreetNumber, address.ZipCode.ToString());
             var laundered = ExecuteAndRead(request);
             

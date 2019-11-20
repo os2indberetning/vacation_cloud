@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Linq;
-
-
-
 using Core.DomainModel;
 using Core.DomainServices;
 using Microsoft.AspNet.OData;
