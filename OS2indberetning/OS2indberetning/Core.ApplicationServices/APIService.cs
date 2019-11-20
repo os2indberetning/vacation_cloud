@@ -403,7 +403,7 @@ namespace Core.ApplicationServices
         {
             var result = new List<string>();
             var index = address.IndexOfAny("0123456789".ToCharArray());
-            if (index == -1)
+            if (index <= 0)
             {
                 result.Add(address);
             }
