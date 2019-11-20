@@ -102,5 +102,10 @@ namespace Presentation.Web.Test.Controllers
         {
             return (int)entity.GetType().GetProperty("Id").GetValue(entity);
         }
+
+        public IQueryable<T> AsQueryableIncludePaths()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -59,28 +59,38 @@ namespace Core.ApplicationServices
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
         {
-            if (isUpdating)
+            try
             {
-                _logger.LogError("UpdateOrganization cancelled because it is already updating");
+                if (isUpdating)
+                {
+                    _logger.LogError("UpdateOrganization cancelled because it is already updating");
+                }
+                else
+                {
+                    isUpdating = true;
+                    _logger.LogInformation("Updating OrgUnits");
+                    UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+                    _logger.LogInformation("Updating Persons");
+                    UpdatePersons(apiOrganizationDTO.Persons);
+                    _logger.LogInformation("Updating Vacation Balance");
+                    UpdateVacationBalances(apiOrganizationDTO.Persons);
+                    // Todo block to look at when we include drive solution in this solution
+                    // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
+                    //_addressHistoryService.UpdateAddressHistories();
+                    //_addressHistoryService.CreateNonExistingHistories();
+                    _logger.LogInformation("Updating leaders on expired or activated substitutes");
+                    UpdateLeadersOnExpiredOrActivatedSubstitutes();
+                    _logger.LogInformation("Adding leaders to reports that have none");
+                    AddLeadersToReportsThatHaveNone();
+                    _logger.LogInformation("Update complete");
+                }
             }
-            else
+            catch (Exception e)
             {
-                isUpdating = true;
-                _logger.LogInformation("Updating OrgUnits");
-                UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
-                _logger.LogInformation("Updating Persons");
-                UpdatePersons(apiOrganizationDTO.Persons);
-                _logger.LogInformation("Updating Vacation Balance");
-                UpdateVacationBalances(apiOrganizationDTO.Persons);
-                // Todo block to look at when we include drive solution in this solution
-                // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
-                //_addressHistoryService.UpdateAddressHistories();
-                //_addressHistoryService.CreateNonExistingHistories();
-                _logger.LogInformation("Updating leaders on expired or activated substitutes");
-                UpdateLeadersOnExpiredOrActivatedSubstitutes();
-                _logger.LogInformation("Adding leaders to reports that have none");
-                AddLeadersToReportsThatHaveNone();
-                _logger.LogInformation("Update complete");
+                _logger.LogError(e, "Failed to update Organization");
+            }
+            finally
+            { 
                 isUpdating = false;
             }
         }
@@ -113,7 +123,7 @@ namespace Core.ApplicationServices
             }
 
             // Handle updates
-            var toBeUpdated = _orgUnitRepo.AsNoTracking().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString()));
+            var toBeUpdated = _orgUnitRepo.AsQueryable().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString()));
             var updateTotal = toBeUpdated.Count();
             var updateCounter = 0;
             _logger.LogDebug("Orgunits to be updated: {0}", updateTotal);
@@ -131,7 +141,6 @@ namespace Core.ApplicationServices
                     _logger.LogWarning("Skipping orgunit update because it has no address. OrgId: {0} Name: {1}", orgToUpdate.OrgId, orgToUpdate.LongDescription);
                     continue;
                 }
-                _orgUnitRepo.Update(orgToUpdate);
                 _orgUnitRepo.Save();
             }
 
@@ -161,7 +170,7 @@ namespace Core.ApplicationServices
             }
 
             // Handle updates
-            var toBeUpdated = _personRepo.AsNoTracking().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
+            var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
             var updateTotal = toBeUpdated.Count();
             var updateCounter = 0;
             _logger.LogDebug("Persons to be updated: {0}", updateTotal);
@@ -174,12 +183,11 @@ namespace Core.ApplicationServices
                 var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                 var personToUpdate = person;
                 mapAPIPerson(apiPerson, ref personToUpdate);
-                _personRepo.Update(personToUpdate);
                 _personRepo.Save();
             }
 
             // Handle deletes
-            var toBeDeleted = _personRepo.AsNoTracking().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
+            var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
             var deleteTotal = toBeDeleted.Count();
             var deleteCounter = 0;
             _logger.LogDebug("Persons to be inactivated: {0}", deleteTotal);
@@ -197,7 +205,6 @@ namespace Core.ApplicationServices
                         employment.EndDateTimestamp = GetUnixTime(DateTime.Now.Date);
                     }                    
                 }
-                _personRepo.Update(personToBeDeleted);
                 _personRepo.Save();
             }
 
@@ -213,9 +220,16 @@ namespace Core.ApplicationServices
 
         private void UpdateVacationBalances(IEnumerable<APIPerson> persons)
         {
+            var updateTotal = persons.Count();
+            var updateCounter = 0;
             foreach (var apiPerson in persons)
             {
-                var person = _personRepo.AsNoTracking().First(p => p.CprNumber == apiPerson.CPR);
+                if (++updateCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Updating vacation balance for person {0} of {1}", updateCounter, updateTotal);
+                }
+
+                var person = _personRepo.AsQueryable().First(p => p.CprNumber == apiPerson.CPR);
                 foreach (var apiEmployment in apiPerson.Employments)
                 {
                     var apiVacationBalance = apiEmployment.VacationBalance;
@@ -223,7 +237,7 @@ namespace Core.ApplicationServices
                     {
                         var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
 
-                        var vacationBalance = _vacationBalanceRepo.AsNoTracking().FirstOrDefault(
+                        var vacationBalance = _vacationBalanceRepo.AsQueryable().FirstOrDefault(
                             x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
 
                         if (vacationBalance == null)
@@ -420,7 +434,7 @@ namespace Core.ApplicationServices
             // Fail-safe as some reports for unknown reasons have not had a leader attached
             Console.WriteLine("Adding leaders to drive reports that have none");
             var i = 0;
-            var reports = _reportRepo.AsNoTracking().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
+            var reports = _reportRepo.AsQueryable().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
             foreach (var report in reports)
             {
                 i++;
@@ -502,9 +516,9 @@ namespace Core.ApplicationServices
 
                     // Update actual current home address.
                     _personalAddressRepo.Insert(launderedAddress);
-                    _personalAddressRepo.Save();
                 }
             }
+            _personalAddressRepo.Save();
         }
 
     }
