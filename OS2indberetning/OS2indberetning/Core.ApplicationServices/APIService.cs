@@ -69,7 +69,7 @@ namespace Core.ApplicationServices
                 {
                     isUpdating = true;
                     _logger.LogInformation("Updating OrgUnits");
-                    UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
+                    //UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
                     _logger.LogInformation("Updating Persons");
                     UpdatePersons(apiOrganizationDTO.Persons);
                     _logger.LogInformation("Updating Vacation Balance");
