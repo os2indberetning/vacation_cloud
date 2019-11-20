@@ -26,7 +26,8 @@ namespace Presentation.Web.Config
                 "Server=" + configuration["Database:Server"] + 
                 ";Database=" + configuration["Database:Database"] + 
                 ";Uid=" + configuration["Database:Uid"] + 
-                ";Pwd=" + configuration["Database:Pwd"] + ";", mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql))); ;
+                ";Pwd=" + configuration["Database:Pwd"] + ";", 
+                    mysqlOptions => mysqlOptions.ServerVersion(new System.Version(5, 6, 30), ServerType.MySql)));
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IPersonService, PersonService>();
             services.AddScoped<IMobileTokenService,MobileTokenService>();
