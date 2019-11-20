@@ -149,70 +149,70 @@ namespace Core.ApplicationServices
 
         private void UpdatePersons(IEnumerable<APIPerson> apiPersons)
         {
-            // Handle inserts
-            var toBeInserted = apiPersons.Where(s => !_personRepo.AsNoTracking().Select(d => d.CprNumber).Contains(s.CPR));
-            var insertTotal = toBeInserted.Count();
-            var insertCounter = 0;
-            _logger.LogDebug("Persons to be inserted: {0}", insertTotal);
-            foreach (var apiPerson in toBeInserted)
-            {
-                if (++insertCounter % 10 == 0)
-                {
-                    _logger.LogDebug("Inserting person {0} of {1}", insertCounter, insertTotal);
-                }
-                var personToInsert = new Person();
-                personToInsert.IsAdmin = false;
-                personToInsert.RecieveMail = true;
-                personToInsert.Employments = new List<Employment>();
-                mapAPIPerson(apiPerson, ref personToInsert);
-                _personRepo.Insert(personToInsert);
-                _personRepo.Save();
-            }
+            //// Handle inserts
+            //var toBeInserted = apiPersons.Where(s => !_personRepo.AsNoTracking().Select(d => d.CprNumber).Contains(s.CPR));
+            //var insertTotal = toBeInserted.Count();
+            //var insertCounter = 0;
+            //_logger.LogDebug("Persons to be inserted: {0}", insertTotal);
+            //foreach (var apiPerson in toBeInserted)
+            //{
+            //    if (++insertCounter % 10 == 0)
+            //    {
+            //        _logger.LogDebug("Inserting person {0} of {1}", insertCounter, insertTotal);
+            //    }
+            //    var personToInsert = new Person();
+            //    personToInsert.IsAdmin = false;
+            //    personToInsert.RecieveMail = true;
+            //    personToInsert.Employments = new List<Employment>();
+            //    mapAPIPerson(apiPerson, ref personToInsert);
+            //    _personRepo.Insert(personToInsert);
+            //    _personRepo.Save();
+            //}
 
-            // Handle updates
-            var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
-            var updateTotal = toBeUpdated.Count();
-            var updateCounter = 0;
-            _logger.LogDebug("Persons to be updated: {0}", updateTotal);
-            foreach (var person in toBeUpdated)
-            {
-                if (++updateCounter % 10 == 0)
-                {
-                    _logger.LogDebug("Updating person {0} of {1}", updateCounter, updateTotal);
-                }
-                var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
-                var personToUpdate = person;
-                mapAPIPerson(apiPerson, ref personToUpdate);
-                _personRepo.Save();
-            }
+            //// Handle updates
+            //var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
+            //var updateTotal = toBeUpdated.Count();
+            //var updateCounter = 0;
+            //_logger.LogDebug("Persons to be updated: {0}", updateTotal);
+            //foreach (var person in toBeUpdated)
+            //{
+            //    if (++updateCounter % 10 == 0)
+            //    {
+            //        _logger.LogDebug("Updating person {0} of {1}", updateCounter, updateTotal);
+            //    }
+            //    var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
+            //    var personToUpdate = person;
+            //    mapAPIPerson(apiPerson, ref personToUpdate);
+            //    _personRepo.Save();
+            //}
 
-            // Handle deletes
-            var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
-            var deleteTotal = toBeDeleted.Count();
-            var deleteCounter = 0;
-            _logger.LogDebug("Persons to be inactivated: {0}", deleteTotal);
-            foreach (var personToBeDeleted in toBeDeleted)
-            {
-                if (++deleteCounter % 10 == 0)
-                {
-                    _logger.LogDebug("Inactivating person {0} of {1}", deleteCounter, deleteTotal);
-                }
-                personToBeDeleted.IsActive = false;
-                foreach (var employment in personToBeDeleted.Employments)
-                {
-                    if (employment.EndDateTimestamp == 0 || employment.EndDateTimestamp > GetUnixTime(DateTime.Now.Date))
-                    {
-                        employment.EndDateTimestamp = GetUnixTime(DateTime.Now.Date);
-                    }                    
-                }
-                _personRepo.Save();
-            }
+            //// Handle deletes
+            //var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
+            //var deleteTotal = toBeDeleted.Count();
+            //var deleteCounter = 0;
+            //_logger.LogDebug("Persons to be inactivated: {0}", deleteTotal);
+            //foreach (var personToBeDeleted in toBeDeleted)
+            //{
+            //    if (++deleteCounter % 10 == 0)
+            //    {
+            //        _logger.LogDebug("Inactivating person {0} of {1}", deleteCounter, deleteTotal);
+            //    }
+            //    personToBeDeleted.IsActive = false;
+            //    foreach (var employment in personToBeDeleted.Employments)
+            //    {
+            //        if (employment.EndDateTimestamp == 0 || employment.EndDateTimestamp > GetUnixTime(DateTime.Now.Date))
+            //        {
+            //            employment.EndDateTimestamp = GetUnixTime(DateTime.Now.Date);
+            //        }                    
+            //    }
+            //    _personRepo.Save();
+            //}
 
 
             // Attach personal addressses
             _logger.LogInformation("Updating persons home addresses");
-            updateTotal = apiPersons.Count();
-            updateCounter = 0;
+            var updateTotal = apiPersons.Count();
+            var updateCounter = 0;
             foreach (var apiPerson in apiPersons)
             {
                 if (++updateCounter % 10 == 0)
