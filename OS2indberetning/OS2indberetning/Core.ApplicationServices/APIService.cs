@@ -61,7 +61,7 @@ namespace Core.ApplicationServices
         {
             if (isUpdating)
             {
-                _logger.LogWarning("UpdateOrganization cancelled because it is already updating");
+                _logger.LogError("UpdateOrganization cancelled because it is already updating");
             }
             else
             {
