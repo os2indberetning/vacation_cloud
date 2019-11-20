@@ -210,9 +210,15 @@ namespace Core.ApplicationServices
 
 
             // Attach personal addressses
+            _logger.LogInformation("Updating persons home addresses");
+            updateTotal = apiPersons.Count();
+            updateCounter = 0;
             foreach (var apiPerson in apiPersons)
             {
-                _logger.LogInformation("Updating persons home addresses");
+                if (++updateCounter % 10 == 0)
+                {
+                    _logger.LogDebug("Updating persons home addresses {0} of {1}", updateCounter, updateTotal);
+                }
                 UpdateHomeAddress(apiPerson);
             }
             _personalAddressRepo.Save();

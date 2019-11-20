@@ -20,27 +20,34 @@ namespace Infrastructure.AddressServices
         /// <returns>Corrected address.</returns>
         public Address LaunderAddress(Address address)
         {
-            if( String.IsNullOrWhiteSpace(address.StreetName) )
+            try
             {
-                throw new AddressLaunderingException("The laundering process did not return any elements because the streetname was blank", 0);
-            }
+                if (String.IsNullOrWhiteSpace(address.StreetName))
+                {
+                    throw new AddressLaunderingException("The laundering process did not return any elements because the streetname was blank", 0);
+                }
 
-            var request = CreateRequest(address.StreetName, address.StreetNumber, address.ZipCode.ToString());
-            var laundered = ExecuteAndRead(request);
-            
-            if ( laundered == null)
+                var request = CreateRequest(address.StreetName, address.StreetNumber, address.ZipCode.ToString());
+                var laundered = ExecuteAndRead(request);
+
+                if (laundered == null)
+                {
+                    throw new AddressLaunderingException("The laundering process did not return any elements.", 0);
+                }
+
+                address.StreetName = laundered.vejstykke.navn;
+                address.StreetNumber = laundered.husnr;
+                address.ZipCode = Convert.ToInt32(laundered.postnummer.nr);
+                address.Town = laundered.postnummer.navn;
+                address.Longitude = laundered.adgangspunkt.koordinater[0];
+                address.Latitude = laundered.adgangspunkt.koordinater[1];
+
+                return address;
+            }
+            catch (Exception e)
             {
-                throw new AddressLaunderingException("The laundering process did not return any elements.", 0);
+                throw new AddressLaunderingException("Failed to Launder Address", e);
             }
-
-            address.StreetName = laundered.vejstykke.navn;
-            address.StreetNumber = laundered.husnr;
-            address.ZipCode = Convert.ToInt32(laundered.postnummer.nr);
-            address.Town = laundered.postnummer.navn;
-            address.Longitude = laundered.adgangspunkt.koordinater[0];
-            address.Latitude = laundered.adgangspunkt.koordinater[1];
-
-            return address;
         }
 
         #endregion
@@ -56,7 +63,7 @@ namespace Infrastructure.AddressServices
         /// <returns></returns>
         private HttpWebRequest CreateRequest(string street, string streetNr, string zipCode)
         {
-            street = char.ToUpper(street[0]) + street.Substring(1);
+            street = street.Length < 2 ? street : char.ToUpper(street[0]) + street.Substring(1);
             streetNr = streetNr.Split(',')[0];
             streetNr = streetNr.ToUpper();
             streetNr = streetNr.Replace(" ", "");
