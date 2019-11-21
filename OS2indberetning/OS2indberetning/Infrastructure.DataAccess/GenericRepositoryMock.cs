@@ -103,7 +103,7 @@ namespace Presentation.Web.Test.Controllers
             return (int)entity.GetType().GetProperty("Id").GetValue(entity);
         }
 
-        public IQueryable<T> AsQueryableIncludePaths()
+        public IQueryable<T> AsQueryableLazy()
         {
             throw new System.NotImplementedException();
         }
