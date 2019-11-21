@@ -133,8 +133,9 @@ namespace Core.ApplicationServices
                     continue;
                 }
                 _orgUnitRepo.Insert(orgToInsert);
+                // need to save each time to generate db id used in the next parent references
+                _orgUnitRepo.Save();
             }
-            _orgUnitRepo.Save();
 
             // Handle updates
             var updateTotal = toBeUpdated.Count();
