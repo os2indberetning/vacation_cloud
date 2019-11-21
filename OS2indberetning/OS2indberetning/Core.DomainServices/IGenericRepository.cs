@@ -31,5 +31,6 @@ namespace Core.DomainServices
         PropertyInfo GetPrimaryKeyProperty();
         IQueryable<T> AsQueryableLazy();
         void Detach(T entity);
+        void SetChangeTrackingEnabled(bool value);
     }
 }

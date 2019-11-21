@@ -112,5 +112,10 @@ namespace Presentation.Web.Test.Controllers
         {
             throw new System.NotImplementedException();
         }
+
+        public void SetChangeTrackingEnabled(bool value)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

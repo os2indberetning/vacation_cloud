@@ -5,6 +5,7 @@ using Core.DomainServices.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Core.ApplicationServices
@@ -55,6 +56,15 @@ namespace Core.ApplicationServices
             _reportService = reportService;
             _vacationBalanceRepo = vacationBalanceRepo;
             _logger = logger;
+
+            // manually handle changes on these large datasets to improve performance
+            _orgUnitRepo.SetChangeTrackingEnabled(false);
+            _cachedRepo.SetChangeTrackingEnabled(false);
+            _personRepo.SetChangeTrackingEnabled(false);
+            _personalAddressRepo.SetChangeTrackingEnabled(false);
+            _subRepo.SetChangeTrackingEnabled(false);
+            _reportRepo.SetChangeTrackingEnabled(false);
+            _vacationBalanceRepo.SetChangeTrackingEnabled(false);
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
@@ -67,6 +77,8 @@ namespace Core.ApplicationServices
                 }
                 else
                 {
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
                     isUpdating = true;
                     _logger.LogInformation("Updating OrgUnits");
                     UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
@@ -80,9 +92,9 @@ namespace Core.ApplicationServices
                     //_addressHistoryService.CreateNonExistingHistories();
                     _logger.LogInformation("Updating leaders on expired or activated substitutes");
                     UpdateLeadersOnExpiredOrActivatedSubstitutes();
-                    _logger.LogInformation("Adding leaders to reports that have none");
-                    AddLeadersToReportsThatHaveNone();
-                    _logger.LogInformation("Update complete");
+                    //_logger.LogInformation("Adding leaders to reports that have none");
+                    //AddLeadersToReportsThatHaveNone();
+                    _logger.LogInformation("Update complete in {0} seconds", stopwatch.Elapsed.TotalSeconds);
                 }
             }
             catch (Exception e)
@@ -121,9 +133,8 @@ namespace Core.ApplicationServices
                     continue;
                 }
                 _orgUnitRepo.Insert(orgToInsert);
-                _orgUnitRepo.Save();
-                _orgUnitRepo.Detach(orgToInsert);
             }
+            _orgUnitRepo.Save();
 
             // Handle updates
             var updateTotal = toBeUpdated.Count();
@@ -143,11 +154,9 @@ namespace Core.ApplicationServices
                     _logger.LogWarning("Skipping orgunit update because it has no address. OrgId: {0} Name: {1}", orgToUpdate.OrgId, orgToUpdate.LongDescription);
                     continue;
                 }
-                _orgUnitRepo.Save();
-                _orgUnitRepo.Detach(orgUnit);
+                _orgUnitRepo.Update(orgToUpdate);
             }
-
-
+            _orgUnitRepo.Save();
         }
 
         private void UpdatePersons(IEnumerable<APIPerson> apiPersons)
@@ -172,9 +181,8 @@ namespace Core.ApplicationServices
                 personToInsert.Employments = new List<Employment>();
                 mapAPIPerson(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
-                _personRepo.Save();
-                _personRepo.Detach(personToInsert);
             }
+            _personRepo.Save();
 
             // Handle updates
             var updateTotal = toBeUpdated.Count();
@@ -189,9 +197,9 @@ namespace Core.ApplicationServices
                 var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                 var personToUpdate = person;
                 mapAPIPerson(apiPerson, ref personToUpdate);
-                _personRepo.Save();
-                _personRepo.Detach(personToUpdate);
+                _personRepo.Update(personToUpdate);
             }
+            _personRepo.Save();
 
             // Handle deletes
             var deleteTotal = toBeDeleted.Count();
@@ -211,9 +219,9 @@ namespace Core.ApplicationServices
                         employment.EndDateTimestamp = GetUnixTime(DateTime.Now.Date);
                     }
                 }
-                _personRepo.Save();
-                _personRepo.Detach(personToBeDeleted);
+                _personRepo.Update(personToBeDeleted);
             }
+            _personRepo.Save();
 
 
             // Attach personal addressses
@@ -533,8 +541,6 @@ namespace Core.ApplicationServices
                     _personalAddressRepo.Insert(launderedAddress);
                 }
             }
-            _personalAddressRepo.Save();
-            _personalAddressRepo.Detach(launderedAddress);
         }
 
     }

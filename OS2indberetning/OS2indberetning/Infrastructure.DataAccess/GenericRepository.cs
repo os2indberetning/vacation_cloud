@@ -90,6 +90,11 @@ namespace Infrastructure.DataAccess
             _context.Entry(entity).State = EntityState.Detached;
         }
 
+        public void SetChangeTrackingEnabled(bool value)
+        {
+            _context.ChangeTracker.AutoDetectChangesEnabled = value;
+        }
+
         public void Patch(T entity)
         {
             // todo do we need this? if so check out context.ChangeTracker.AutoDetectChangesEnabled
