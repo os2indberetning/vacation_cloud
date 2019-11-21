@@ -98,7 +98,9 @@ namespace Core.ApplicationServices
         private void UpdateOrgUnits(IEnumerable<APIOrgUnit> apiOrgUnits)
         {
             // Handle inserts
-            var toBeInserted = apiOrgUnits.Where(s => !_orgUnitRepo.AsNoTracking().Select(d => d.OrgId.ToString()).Contains(s.Id));
+            var toBeInserted = apiOrgUnits.Where(s => !_orgUnitRepo.AsNoTracking().Select(d => d.OrgId.ToString()).Contains(s.Id)).ToList();
+            var toBeUpdated = _orgUnitRepo.AsQueryableLazy().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString())).ToList();
+
             var insertTotal = toBeInserted.Count();
             var insertCounter = 0;
             _logger.LogDebug("Orgunits to be inserted: {0}", insertTotal);
@@ -123,7 +125,6 @@ namespace Core.ApplicationServices
             }
 
             // Handle updates
-            var toBeUpdated = _orgUnitRepo.AsQueryable().Where(d => apiOrgUnits.Select(s => s.Id).Contains(d.OrgId.ToString()));
             var updateTotal = toBeUpdated.Count();
             var updateCounter = 0;
             _logger.LogDebug("Orgunits to be updated: {0}", updateTotal);
@@ -151,6 +152,9 @@ namespace Core.ApplicationServices
         {
             // Handle inserts
             var toBeInserted = apiPersons.Where(s => !_personRepo.AsNoTracking().Select(d => d.CprNumber).Contains(s.CPR));
+            var toBeUpdated = _personRepo.AsQueryableLazy().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber)).ToList();
+            var toBeDeleted = _personRepo.AsQueryableLazy().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber)).ToList();
+
             var insertTotal = toBeInserted.Count();
             var insertCounter = 0;
             _logger.LogDebug("Persons to be inserted: {0}", insertTotal);
@@ -170,7 +174,6 @@ namespace Core.ApplicationServices
             }
 
             // Handle updates
-            var toBeUpdated = _personRepo.AsQueryable().Where(d => apiPersons.Select(s => s.CPR).Contains(d.CprNumber));
             var updateTotal = toBeUpdated.Count();
             var updateCounter = 0;
             _logger.LogDebug("Persons to be updated: {0}", updateTotal);
@@ -187,7 +190,6 @@ namespace Core.ApplicationServices
             }
 
             // Handle deletes
-            var toBeDeleted = _personRepo.AsQueryable().Where(p => p.IsActive && !apiPersons.Select(ap => ap.CPR).Contains(p.CprNumber));
             var deleteTotal = toBeDeleted.Count();
             var deleteCounter = 0;
             _logger.LogDebug("Persons to be inactivated: {0}", deleteTotal);
@@ -235,7 +237,7 @@ namespace Core.ApplicationServices
                     _logger.LogDebug("Updating vacation balance for person {0} of {1}", updateCounter, updateTotal);
                 }
 
-                var person = _personRepo.AsQueryable().First(p => p.CprNumber == apiPerson.CPR);
+                var person = _personRepo.AsQueryableLazy().First(p => p.CprNumber == apiPerson.CPR);
                 foreach (var apiEmployment in apiPerson.Employments)
                 {
                     var apiVacationBalance = apiEmployment.VacationBalance;
@@ -243,7 +245,7 @@ namespace Core.ApplicationServices
                     {
                         var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
 
-                        var vacationBalance = _vacationBalanceRepo.AsQueryable().FirstOrDefault(
+                        var vacationBalance = _vacationBalanceRepo.AsQueryableLazy().FirstOrDefault(
                             x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
 
                         if (vacationBalance == null)
@@ -440,7 +442,7 @@ namespace Core.ApplicationServices
             // Fail-safe as some reports for unknown reasons have not had a leader attached
             Console.WriteLine("Adding leaders to drive reports that have none");
             var i = 0;
-            var reports = _reportRepo.AsQueryable().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
+            var reports = _reportRepo.AsQueryableLazy().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
             foreach (var report in reports)
             {
                 i++;
