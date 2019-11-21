@@ -122,6 +122,7 @@ namespace Core.ApplicationServices
                 }
                 _orgUnitRepo.Insert(orgToInsert);
                 _orgUnitRepo.Save();
+                _orgUnitRepo.Detach(orgToInsert);
             }
 
             // Handle updates
@@ -143,6 +144,7 @@ namespace Core.ApplicationServices
                     continue;
                 }
                 _orgUnitRepo.Save();
+                _orgUnitRepo.Detach(orgUnit);
             }
 
 
@@ -171,6 +173,7 @@ namespace Core.ApplicationServices
                 mapAPIPerson(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
                 _personRepo.Save();
+                _personRepo.Detach(personToInsert);
             }
 
             // Handle updates
@@ -187,6 +190,7 @@ namespace Core.ApplicationServices
                 var personToUpdate = person;
                 mapAPIPerson(apiPerson, ref personToUpdate);
                 _personRepo.Save();
+                _personRepo.Detach(personToUpdate);
             }
 
             // Handle deletes
@@ -208,6 +212,7 @@ namespace Core.ApplicationServices
                     }
                 }
                 _personRepo.Save();
+                _personRepo.Detach(personToBeDeleted);
             }
 
 
@@ -262,10 +267,12 @@ namespace Core.ApplicationServices
                         vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
                         vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
                         vacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);
+                        _vacationBalanceRepo.Save();
+                        _vacationBalanceRepo.Detach(vacationBalance);
                     }
                 }
+                _personRepo.Detach(person);
             }
-            _vacationBalanceRepo.Save();
         }
 
         private void mapAPIPerson(APIPerson apiPerson, ref Person personToInsert)
@@ -527,6 +534,7 @@ namespace Core.ApplicationServices
                 }
             }
             _personalAddressRepo.Save();
+            _personalAddressRepo.Detach(launderedAddress);
         }
 
     }

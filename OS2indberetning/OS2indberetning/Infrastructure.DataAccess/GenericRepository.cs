@@ -85,6 +85,11 @@ namespace Infrastructure.DataAccess
             _context.Entry(entity).State = EntityState.Modified;
         }
 
+        public void Detach(T entity)
+        {
+            _context.Entry(entity).State = EntityState.Detached;
+        }
+
         public void Patch(T entity)
         {
             // todo do we need this? if so check out context.ChangeTracker.AutoDetectChangesEnabled

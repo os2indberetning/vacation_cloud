@@ -107,5 +107,10 @@ namespace Presentation.Web.Test.Controllers
         {
             throw new System.NotImplementedException();
         }
+
+        public void Detach(T entity)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
