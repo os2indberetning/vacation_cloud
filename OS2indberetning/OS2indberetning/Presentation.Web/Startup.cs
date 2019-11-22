@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Presentation.Web.Auth;
 using Presentation.Web.Config;
+using System;
 using System.IO;
 
 namespace Presentation.Web
@@ -27,6 +28,8 @@ namespace Presentation.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDependencies(Configuration);
+            services.AddDistributedMemoryCache();//To Store session in Memory, This is default implementation of IDistributedCache    
+            services.AddSession();
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(Configuration["DataProtectionPath"]));
             services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<DataContext>();
             services.AddOData();
@@ -35,6 +38,8 @@ namespace Presentation.Web
 
             services.AddSAMLAuthentication(Configuration);
             services.AddAuthentication(o => o.AddScheme(APIAuthenticationHandler.AuthenticationScheme, a => a.HandlerType = typeof(APIAuthenticationHandler)));
+
+            services.AddSession(s => s.IdleTimeout = TimeSpan.FromSeconds(30));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -50,6 +55,7 @@ namespace Presentation.Web
             }
             InitializeDatabase(app);
             app.UseAuthentication();
+            app.UseSession();
             app.UseMvc(r => RouteConfig.Use(r));
             app.UseStaticFiles();
             app.UseFileServer(enableDirectoryBrowsing: false);

@@ -23,7 +23,7 @@ namespace Presentation.Web.Pages
             if (info == null)
             {
                 var provider = "Saml2";
-                var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "/");
+                var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "/SAML/Callback");
                 return new ChallengeResult(provider, properties);
             }
             return Page();

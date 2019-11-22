@@ -45,23 +45,10 @@ namespace OS2Indberetning.Controllers
             get{
                 if (_currentUser == null)
                 {
-                    var info = _signInManager.GetExternalLoginInfoAsync();
-                    info.Wait();
-                    if (info.Result == null)
-                    {
-                        throw new UnauthorizedAccessException("Bruger ikke logget ind");
-                    }
-                    var cprClaim = info.Result.Principal.Claims.Where(c => c.Type == "http://rep.oio.dk/cpr.dk/xml/schemas/core/2005/03/18/PersonCivilRegistrationIdentifier").First();
-                    _currentUser = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(cprClaim.Value.Replace("-","")));
-                    if (CurrentUser == null)
-                    {
-                        throw new UnauthorizedAccessException("Bruger ikke fundet i databasen.");
-                    }
-                    if (!CurrentUser.IsActive)
-                    {
-                        throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
-                    }
-                    _currentUser.IsAdmin = info.Result.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
+                    var userId = HttpContext.Session.GetInt32("userId");
+                    var isAdmin = Boolean.Parse(HttpContext.Session.GetString("isAdmin"));
+                    _currentUser = _personRepo.AsQueryable().First(p => p.Id == userId);
+                    _currentUser.IsAdmin = isAdmin;
                 }
                 return _currentUser;
             }
