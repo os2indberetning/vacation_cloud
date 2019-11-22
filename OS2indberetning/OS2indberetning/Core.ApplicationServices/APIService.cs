@@ -26,6 +26,8 @@ namespace Core.ApplicationServices
         private readonly IReportService<Report> _reportService;
         private readonly IGenericRepository<VacationBalance> _vacationBalanceRepo;
         private readonly ILogger<APIService> _logger;
+        private readonly CachedAddressLaunderer _launderer;
+
 
         public APIService(
             IGenericRepository<OrgUnit> orgUnitRepo,
@@ -33,7 +35,6 @@ namespace Core.ApplicationServices
             IAddressLaunderer actualLaunderer,
             IAddressCoordinates coordinates,
             IGenericRepository<Person> personRepo,
-            IGenericRepository<PersonalAddress> personalAddressRepo,
             AddressHistoryService addressHistoryService,
             ISubstituteService subService,
             IGenericRepository<Substitute> subRepo,
@@ -48,7 +49,6 @@ namespace Core.ApplicationServices
             _actualLaunderer = actualLaunderer;
             _coordinates = coordinates;
             _personRepo = personRepo;
-            _personalAddressRepo = personalAddressRepo;
             _addressHistoryService = addressHistoryService;
             _subService = subService;
             _subRepo = subRepo;
@@ -57,11 +57,12 @@ namespace Core.ApplicationServices
             _vacationBalanceRepo = vacationBalanceRepo;
             _logger = logger;
 
+            _launderer = new CachedAddressLaunderer(_cachedRepo, _actualLaunderer, _coordinates);
+
             // manually handle changes on these large datasets to improve performance
             _orgUnitRepo.SetChangeTrackingEnabled(false);
             _cachedRepo.SetChangeTrackingEnabled(false);
             _personRepo.SetChangeTrackingEnabled(false);
-            _personalAddressRepo.SetChangeTrackingEnabled(false);
             _subRepo.SetChangeTrackingEnabled(false);
             _reportRepo.SetChangeTrackingEnabled(false);
             _vacationBalanceRepo.SetChangeTrackingEnabled(false);
@@ -84,17 +85,15 @@ namespace Core.ApplicationServices
                     UpdateOrgUnits(apiOrganizationDTO.OrgUnits);
                     _logger.LogInformation("Updating Persons");
                     UpdatePersons(apiOrganizationDTO.Persons);
-                    _logger.LogInformation("Updating Vacation Balance");
-                    UpdateVacationBalances(apiOrganizationDTO.Persons);
+                    _logger.LogInformation("Updating leaders on expired or activated substitutes");
+                    UpdateLeadersOnExpiredOrActivatedSubstitutes();
                     // Todo block to look at when we include drive solution in this solution
                     // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
                     //_addressHistoryService.UpdateAddressHistories();
                     //_addressHistoryService.CreateNonExistingHistories();
-                    _logger.LogInformation("Updating leaders on expired or activated substitutes");
-                    UpdateLeadersOnExpiredOrActivatedSubstitutes();
                     //_logger.LogInformation("Adding leaders to reports that have none");
                     //AddLeadersToReportsThatHaveNone();
-                    _logger.LogInformation("Update complete in {0} seconds", stopwatch.Elapsed.TotalSeconds);
+                    _logger.LogInformation("Update completed in {0} seconds", stopwatch.Elapsed.TotalSeconds);
                 }
             }
             catch (Exception e)
@@ -180,10 +179,13 @@ namespace Core.ApplicationServices
                 personToInsert.IsAdmin = false;
                 personToInsert.RecieveMail = true;
                 personToInsert.Employments = new List<Employment>();
+                personToInsert.PersonalAddresses = new List<PersonalAddress>();
                 mapAPIPerson(apiPerson, ref personToInsert);
+                UpdateHomeAddress(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
+                _personRepo.Save();
+                UpdateVacationBalances(apiPerson, personToInsert);
             }
-            _personRepo.Save();
 
             // Handle updates
             var updateTotal = toBeUpdated.Count();
@@ -198,6 +200,8 @@ namespace Core.ApplicationServices
                 var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                 var personToUpdate = person;
                 mapAPIPerson(apiPerson, ref personToUpdate);
+                UpdateHomeAddress(apiPerson, ref personToUpdate);
+                UpdateVacationBalances(apiPerson, personToUpdate);
                 _personRepo.Update(personToUpdate);
             }
             _personRepo.Save();
@@ -223,65 +227,42 @@ namespace Core.ApplicationServices
                 _personRepo.Update(personToBeDeleted);
             }
             _personRepo.Save();
-
-
-            // Attach personal addressses
-            _logger.LogInformation("Updating persons home addresses");
-            updateTotal = apiPersons.Count();
-            updateCounter = 0;
-            foreach (var apiPerson in apiPersons)
-            {
-                if (++updateCounter % 10 == 0)
-                {
-                    _logger.LogDebug("Updating persons home addresses {0} of {1}", updateCounter, updateTotal);
-                }
-                UpdateHomeAddress(apiPerson);
-            }
-            _personalAddressRepo.Save();
         }
 
-        private void UpdateVacationBalances(IEnumerable<APIPerson> persons)
+        private void UpdateVacationBalances(APIPerson apiPerson, Person person)
         {
-            var updateTotal = persons.Count();
-            var updateCounter = 0;
-            foreach (var apiPerson in persons)
+            var personId = person.Id;
+            foreach (var apiEmployment in apiPerson.Employments)
             {
-                if (++updateCounter % 10 == 0)
+                var apiVacationBalance = apiEmployment.VacationBalance;
+                if (apiVacationBalance != null)
                 {
-                    _logger.LogDebug("Updating vacation balance for person {0} of {1}", updateCounter, updateTotal);
-                }
+                    var employment = person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
+                    var vacationBalance = _vacationBalanceRepo.AsQueryableLazy().FirstOrDefault(
+                        x => x.PersonId == personId && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
 
-                var person = _personRepo.AsQueryableLazy().First(p => p.CprNumber == apiPerson.CPR);
-                foreach (var apiEmployment in apiPerson.Employments)
-                {
-                    var apiVacationBalance = apiEmployment.VacationBalance;
-                    if (apiVacationBalance != null)
+                    if (vacationBalance == null)
                     {
-                        var employment =  person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
-
-                        var vacationBalance = _vacationBalanceRepo.AsQueryableLazy().FirstOrDefault(
-                            x => x.PersonId == person.Id && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
-
-                        if (vacationBalance == null)
+                        vacationBalance = new VacationBalance
                         {
-                            vacationBalance = new VacationBalance
-                            {
-                                PersonId = person.Id,
-                                EmploymentId = employment.Id,
-                                Year = apiVacationBalance.VacationEarnedYear
-                            };
-                            _vacationBalanceRepo.Insert(vacationBalance);
-                        }
-                        vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
-                        vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
-                        vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
-                        vacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);
-                        _vacationBalanceRepo.Save();
-                        _vacationBalanceRepo.Detach(vacationBalance);
+                            PersonId = person.Id,
+                            EmploymentId = employment.Id,
+                            Year = apiVacationBalance.VacationEarnedYear
+                        };
+                        _vacationBalanceRepo.Insert(vacationBalance);
                     }
+                    else
+                    {
+                        _vacationBalanceRepo.Update(vacationBalance);
+                    }
+                    vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
+                    vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
+                    vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
+                    vacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);
+                    
                 }
-                _personRepo.Detach(person);
             }
+            _vacationBalanceRepo.Save();
         }
 
         private void mapAPIPerson(APIPerson apiPerson, ref Person personToInsert)
@@ -473,29 +454,10 @@ namespace Core.ApplicationServices
             _reportRepo.Save();
         }
 
-        /// <summary>
-        /// Updates home address for person identified by personId.
-        /// </summary>
-        /// <param name="empl"></param>
-        /// <param name="personId"></param>
-        public void UpdateHomeAddress(APIPerson apiPerson)
+        public void UpdateHomeAddress(APIPerson apiPerson, ref Person person)
         {
-            if (apiPerson.Address?.Street == null)
-            {
-                return;
-            }
-
-            var person = _personRepo.AsNoTracking().FirstOrDefault(x => x.CprNumber == apiPerson.CPR);
-            if (person == null)
-            {
-                throw new Exception("Person does not exist.");
-            }
-
-            var launderer = new CachedAddressLaunderer(_cachedRepo, _actualLaunderer, _coordinates);
-
             var splitStreetAddress = SplitAddressOnNumber(apiPerson.Address.Street);
-
-            var addressToLaunder = new Address
+            var apiAddress = new Address
             {
                 Description = person.FullName,
                 StreetName = splitStreetAddress.ElementAt(0),
@@ -503,44 +465,28 @@ namespace Core.ApplicationServices
                 ZipCode = apiPerson.Address.PostalCode,
                 Town = apiPerson.Address.City ?? "",
             };
-            addressToLaunder = launderer.Launder(addressToLaunder);
-
-            var launderedAddress = new PersonalAddress()
+            apiAddress = _launderer.Launder(apiAddress);
+            var apiPersonalAddress = new PersonalAddress()
             {
                 PersonId = person.Id,
                 Type = PersonalAddressType.Home,
-                StreetName = addressToLaunder.StreetName,
-                StreetNumber = addressToLaunder.StreetNumber,
-                ZipCode = addressToLaunder.ZipCode,
-                Town = addressToLaunder.Town,
-                Latitude = addressToLaunder.Latitude ?? "",
-                Longitude = addressToLaunder.Longitude ?? "",
-                Description = addressToLaunder.Description
+                StreetName = apiAddress.StreetName,
+                StreetNumber = apiAddress.StreetNumber,
+                ZipCode = apiAddress.ZipCode,
+                Town = apiAddress.Town,
+                Latitude = apiAddress.Latitude ?? "",
+                Longitude = apiAddress.Longitude ?? "",
+                Description = apiAddress.Description
             };
-
-            var homeAddr = _personalAddressRepo.AsNoTracking().FirstOrDefault(x => x.PersonId.Equals(person.Id) &&
-                x.Type == PersonalAddressType.Home);
-
-            if (homeAddr == null)
+            var homeAddress = person.PersonalAddresses.Where(a => a.Type == PersonalAddressType.Home).FirstOrDefault();
+            if (homeAddress == null)
             {
-                _personalAddressRepo.Insert(launderedAddress);
+                person.PersonalAddresses.Add(apiPersonalAddress);
             }
-            else
+            else if (homeAddress != apiPersonalAddress)
             {
-                if (homeAddr != launderedAddress)
-                {
-                    // Address has changed
-                    // Change type of current (The one about to be changed) home address to OldHome.
-                    // Is done in loop because there was an error that created one or more home addresses for the same person.
-                    // This will make sure all home addresses are set to old if more than one exists.
-                    foreach (var addr in _personalAddressRepo.AsNoTracking().Where(x => x.PersonId.Equals(person.Id) && x.Type == PersonalAddressType.Home).ToList())
-                    {
-                        addr.Type = PersonalAddressType.OldHome; ;
-                    }
-
-                    // Update actual current home address.
-                    _personalAddressRepo.Insert(launderedAddress);
-                }
+                homeAddress.Type = PersonalAddressType.OldHome;
+                person.PersonalAddresses.Add(apiPersonalAddress);
             }
         }
 
