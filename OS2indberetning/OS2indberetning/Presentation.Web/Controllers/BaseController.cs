@@ -45,9 +45,9 @@ namespace OS2Indberetning.Controllers
             get{
                 if (_currentUser == null)
                 {
-                    var userId = HttpContext.Session.GetInt32("userId");
+                    var personId = HttpContext.Session.GetInt32("personId");
                     var isAdmin = Boolean.Parse(HttpContext.Session.GetString("isAdmin"));
-                    _currentUser = _personRepo.AsQueryable().First(p => p.Id == userId);
+                    _currentUser = _personRepo.AsQueryable().First(p => p.Id == personId);
                     _currentUser.IsAdmin = isAdmin;
                 }
                 return _currentUser;
