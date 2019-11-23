@@ -9,17 +9,15 @@ namespace Presentation.Web.Pages
 {
     public class indexModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
         public string Version { get; set; }
-        public indexModel(SignInManager<IdentityUser> signInManager, IConfiguration Configuration)
+        public indexModel(IConfiguration Configuration)
         {
-            _signInManager = signInManager;
             Version = Configuration.GetValue<string>("Version");
         }
 
         public IActionResult OnGet()
         {
-            if (!HttpContext.Session.GetInt32("personId").HasValue)
+            if (!User.Identity.IsAuthenticated)
             {
                 return Redirect("/SAML/Login");
             }

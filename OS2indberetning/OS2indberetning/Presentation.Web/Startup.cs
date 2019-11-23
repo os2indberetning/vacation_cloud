@@ -31,7 +31,9 @@ namespace Presentation.Web
             services.AddDistributedMemoryCache();//To Store session in Memory, This is default implementation of IDistributedCache    
             services.AddSession();
             services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(Configuration["DataProtectionPath"]));
-            services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<DataContext>();
+            services.AddIdentity<IdentityPerson, IdentityRole>()
+                .AddUserStore<PersonUserStore>()
+                .AddRoleStore<PersonRoleStore>();              
             services.AddOData();
             services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
                 .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);

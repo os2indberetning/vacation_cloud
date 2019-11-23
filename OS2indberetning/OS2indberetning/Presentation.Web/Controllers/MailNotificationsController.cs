@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers
 {
     public class MailNotificationsController : BaseController<MailNotificationSchedule>
     {
-        public MailNotificationsController(IGenericRepository<MailNotificationSchedule> repo, IGenericRepository<Person> personRepo, ILogger<MailNotificationSchedule> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo, logger,signInManager){}
+        public MailNotificationsController(IGenericRepository<MailNotificationSchedule> repo, IGenericRepository<Person> personRepo, ILogger<MailNotificationSchedule> logger, UserManager<IdentityPerson> userManager) : base(repo, personRepo, logger,userManager){}
         
         //GET: odata/MailNotificationSchedules
         /// <summary>

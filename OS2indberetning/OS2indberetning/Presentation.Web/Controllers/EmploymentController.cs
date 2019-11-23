@@ -9,12 +9,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers
 {
     public class EmploymentsController : BaseController<Employment>
     {
-        public EmploymentsController(IGenericRepository<Employment> repo, IGenericRepository<Person> personRepo, ILogger<Employment> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager){}
+        public EmploymentsController(IGenericRepository<Employment> repo, IGenericRepository<Person> personRepo, ILogger<Employment> logger, UserManager<IdentityPerson> userManager) : base(repo, personRepo,logger,userManager){}
         
         //GET: odata/Employments
         /// <summary>

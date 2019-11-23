@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers
 {
@@ -16,7 +17,7 @@ namespace OS2Indberetning.Controllers
     {
         private readonly IOrgUnitService _orgService;
 
-        public OrgUnitsController(IGenericRepository<OrgUnit> repo, IGenericRepository<Person> personRepo, IOrgUnitService orgService, ILogger<OrgUnit> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager)
+        public OrgUnitsController(IGenericRepository<OrgUnit> repo, IGenericRepository<Person> personRepo, IOrgUnitService orgService, ILogger<OrgUnit> logger, UserManager<IdentityPerson> userManager) : base(repo, personRepo,logger,userManager)
         {
             _orgService = orgService;
         }

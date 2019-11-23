@@ -1,17 +1,18 @@
-﻿using System;
+﻿using Core.DomainModel;
+using Core.DomainServices;
+using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Query;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Core.DomainModel;
-using Core.DomainServices;
 using Expression = System.Linq.Expressions.Expression;
-using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Query;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 
 namespace OS2Indberetning.Controllers
 {
@@ -21,15 +22,14 @@ namespace OS2Indberetning.Controllers
         protected IGenericRepository<T> Repo;
         private readonly IGenericRepository<Person> _personRepo;
         private readonly PropertyInfo _primaryKeyProp;
-        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<T> _logger;
-        private Person _currentUser;
+        private readonly UserManager<IdentityPerson> _userManager;
 
         public BaseController(
             IGenericRepository<T> repository,
             IGenericRepository<Person> personRepo,
             ILogger<T> logger,
-            SignInManager<IdentityUser> signInManager)
+            UserManager<IdentityPerson> userManager)
         {
             _personRepo = personRepo;
             ValidationSettings.AllowedQueryOptions = AllowedQueryOptions.All;
@@ -37,22 +37,15 @@ namespace OS2Indberetning.Controllers
             Repo = repository;
             _primaryKeyProp = Repo.GetPrimaryKeyProperty();
             _logger = logger;
-            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         protected Person CurrentUser
         {
             get{
-                if (_currentUser == null)
-                {
-                    var personId = HttpContext.Session.GetInt32("personId");
-                    if (personId == null)
-                    {
-                        return null;
-                    }
-                    _currentUser = _personRepo.AsQueryable().First(p => p.Id == personId);
-                }
-                return _currentUser;
+                var user = _userManager.GetUserAsync(HttpContext.User);
+                user.Wait();
+                return user.Result.Person;
             }
         }
 

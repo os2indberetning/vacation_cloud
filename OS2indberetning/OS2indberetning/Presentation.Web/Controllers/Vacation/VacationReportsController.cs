@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers.Vacation
 {
@@ -18,10 +19,10 @@ namespace OS2Indberetning.Controllers.Vacation
         private readonly IVacationReportService _reportService;
         private readonly IGenericRepository<Employment> _employmentRepo;
 
-        private readonly ILogger _logger;
+        private readonly ILogger<VacationReport> _logger;
 
-        public VacationReportsController(IGenericRepository<VacationReport> repo, IVacationReportService reportService, IGenericRepository<Person> personRepo, IGenericRepository<Employment> employmentRepo, ILogger<VacationReport> logger, SignInManager<IdentityUser> signInManager)
-            : base(repo, personRepo,logger,signInManager)
+        public VacationReportsController(IGenericRepository<VacationReport> repo, IVacationReportService reportService, IGenericRepository<Person> personRepo, IGenericRepository<Employment> employmentRepo, ILogger<VacationReport> logger, UserManager<IdentityPerson> userManager)
+            : base(repo, personRepo,logger,userManager)
         {
             _reportService = reportService;
             _employmentRepo = employmentRepo;

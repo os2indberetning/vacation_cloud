@@ -6,12 +6,13 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers
 {
     public class BankAccountsController : BaseController<BankAccount>
     {
-        public BankAccountsController(IGenericRepository<BankAccount> repo, IGenericRepository<Person> personRepo, ILogger<BankAccount> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager) { }
+        public BankAccountsController(IGenericRepository<BankAccount> repo, IGenericRepository<Person> personRepo, ILogger<BankAccount> logger, UserManager<IdentityPerson> userManager) : base(repo, personRepo,logger,userManager) { }
         
         //GET: odata/BankAccounts
         [EnableQuery]

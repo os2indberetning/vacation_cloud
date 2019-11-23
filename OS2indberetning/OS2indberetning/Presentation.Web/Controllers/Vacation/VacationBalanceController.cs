@@ -7,6 +7,7 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers.Vacation
 {
@@ -14,7 +15,7 @@ namespace OS2Indberetning.Controllers.Vacation
     {
 
 
-        public VacationBalanceController(IGenericRepository<VacationBalance> repo, IGenericRepository<Person> personRepo, ILogger<VacationBalance> logger, SignInManager<IdentityUser> signInManager) : base(repo, personRepo,logger,signInManager)
+        public VacationBalanceController(IGenericRepository<VacationBalance> repo, IGenericRepository<Person> personRepo, ILogger<VacationBalance> logger, UserManager<IdentityPerson> userManager) : base(repo, personRepo,logger,userManager)
         {
         }
 

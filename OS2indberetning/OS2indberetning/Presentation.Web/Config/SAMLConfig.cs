@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Sustainsys.Saml2;
+using Sustainsys.Saml2.AspNetCore2;
 using Sustainsys.Saml2.Metadata;
 using System;
 using System.Security.Cryptography.X509Certificates;
@@ -12,9 +14,12 @@ namespace Presentation.Web.Config
     {
         public static IServiceCollection AddSAMLAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
+            var l = services.BuildServiceProvider().GetService<ILogger<Program>>();
+            l.LogInformation("testing it ###");
             services.AddAuthentication()
                 .AddSaml2(options =>
                 {
+                    options.SPOptions.Logger = new AspNetCoreLoggerAdapter(l);
                     options.SPOptions.EntityId = new EntityId(configuration["SAML:EntityId"]);
                     options.SPOptions.PublicOrigin = new Uri(configuration["SAML:PublicOrigin"]);
                     options.IdentityProviders.Add(

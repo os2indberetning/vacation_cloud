@@ -1,10 +1,14 @@
 ﻿using Core.DomainModel;
 using Core.DomainServices;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
+using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
+using Sustainsys.Saml2;
+using Sustainsys.Saml2.AspNetCore2;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Presentation.Web.Controllers.API
@@ -13,47 +17,38 @@ namespace Presentation.Web.Controllers.API
     [ApiController]
     public class SAMLController : ControllerBase
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<IdentityPerson> _signInManager;
         private readonly IGenericRepository<Person> _personRepo;
+        private readonly ILogger<SAMLController> _logger;
 
-        public SAMLController(SignInManager<IdentityUser> signinManager, IGenericRepository<Person> personRepo)
+        public SAMLController(SignInManager<IdentityPerson> signinManager, IGenericRepository<Person> personRepo, ILogger<SAMLController> logger)
         {
             _signInManager = signinManager;
             _personRepo = personRepo;
+            _logger = logger;
         }
 
         public ActionResult Login()
         {
-            var provider = "Saml2";
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "/SAML/Callback");
-            return new ChallengeResult(provider, properties);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(Saml2Defaults.Scheme, "/SAML/Callback");
+            return new ChallengeResult(Saml2Defaults.Scheme, properties);
+        }
+
+        public async Task<ActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return SignOut(new AuthenticationProperties(){RedirectUri = "/Index"},Saml2Defaults.Scheme);            
         }
 
         public async Task<ActionResult> Callback()
         {
-
             var info = await _signInManager.GetExternalLoginInfoAsync();
-            
-            var cprClaim = info.Principal.Claims.Where(c => c.Type == "http://rep.oio.dk/cpr.dk/xml/schemas/core/2005/03/18/PersonCivilRegistrationIdentifier").First();
-            var person = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(cprClaim.Value.Replace("-", "")));
-            if (person == null)
+            _signInManager.ClaimsFactory = new Saml2ClaimsFactory(_signInManager.ClaimsFactory, info,_personRepo);
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            if (result.Succeeded)
             {
-                throw new UnauthorizedAccessException("Bruger ikke fundet i databasen.");
+                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
             }
-            if (!person.IsActive)
-            {
-                throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
-            }
-            person.IsAdmin = info.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
-
-            var email = info.Principal.Claims.Where(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").FirstOrDefault();
-            if (email != null)
-            {
-                person.Mail = email.Value;
-            }
-            _personRepo.Save();
-
-            HttpContext.Session.SetInt32("personId", person.Id);
             return Redirect("/index");
         }
     }

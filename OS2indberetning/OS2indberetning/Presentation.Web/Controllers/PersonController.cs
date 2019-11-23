@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using Core.ApplicationServices.Interfaces;
 using Core.DomainModel;
 using Core.DomainServices;
@@ -13,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers
 {
@@ -26,8 +26,8 @@ namespace OS2Indberetning.Controllers
         private readonly IGenericRepository<Report> _reportRepo;
         private readonly IOrgUnitService _orgService;
 
-        public PersonController(IGenericRepository<Person> repo, IPersonService personService, IGenericRepository<Employment> employmentRepo, IGenericRepository<LicensePlate> licensePlateRepo, IGenericRepository<Substitute> substituteRepo, IGenericRepository<AppLogin> appLoginRepo, IOrgUnitService orgService, IGenericRepository<Report> reportRepo, ILogger<Person> logger, SignInManager<IdentityUser> signInManager)
-            : base(repo, repo,logger,signInManager)
+        public PersonController(IGenericRepository<Person> repo, IPersonService personService, IGenericRepository<Employment> employmentRepo, IGenericRepository<LicensePlate> licensePlateRepo, IGenericRepository<Substitute> substituteRepo, IGenericRepository<AppLogin> appLoginRepo, IOrgUnitService orgService, IGenericRepository<Report> reportRepo, ILogger<Person> logger, UserManager<IdentityPerson> userManager)
+            : base(repo, repo,logger,userManager)
         {
             _person = personService;
             _employmentRepo = employmentRepo;

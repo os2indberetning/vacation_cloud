@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Presentation.Web.Auth;
 
 namespace OS2Indberetning.Controllers
 {
@@ -22,7 +23,7 @@ namespace OS2Indberetning.Controllers
 
 
         //GET: odata/Substitutes
-        public SubstitutesController(IGenericRepository<Substitute> repository, ISubstituteService sub, IGenericRepository<Person> personRepo, ILogger<Substitute> logger, SignInManager<IdentityUser> signInManager) : base(repository, personRepo, logger,signInManager)
+        public SubstitutesController(IGenericRepository<Substitute> repository, ISubstituteService sub, IGenericRepository<Person> personRepo, ILogger<Substitute> logger, UserManager<IdentityPerson> userManager) : base(repository, personRepo, logger,userManager)
         {
             _sub = sub;
         }
