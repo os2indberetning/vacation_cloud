@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
@@ -16,15 +17,11 @@ namespace Presentation.Web.Pages
             Version = Configuration.GetValue<string>("Version");
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        public IActionResult OnGet()
         {
-            // AuthorizeAttribute apparently not working with returnurl, so issuing challenge manually instead 
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            if (!HttpContext.Session.GetInt32("personId").HasValue)
             {
-                var provider = "Saml2";
-                var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "/SAML/Callback");
-                return new ChallengeResult(provider, properties);
+                return Redirect("/SAML/Login");
             }
             return Page();
         }

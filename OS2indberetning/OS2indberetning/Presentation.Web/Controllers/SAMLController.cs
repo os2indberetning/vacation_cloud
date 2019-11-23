@@ -22,6 +22,13 @@ namespace Presentation.Web.Controllers.API
             _personRepo = personRepo;
         }
 
+        public ActionResult Login()
+        {
+            var provider = "Saml2";
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "/SAML/Callback");
+            return new ChallengeResult(provider, properties);
+        }
+
         public async Task<ActionResult> Callback()
         {
 
@@ -37,19 +44,16 @@ namespace Presentation.Web.Controllers.API
             {
                 throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
             }
-            HttpContext.Session.SetInt32("personId", person.Id);
-
-            var isAdmin = info.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
-            HttpContext.Session.SetString("isAdmin", isAdmin.ToString());
+            person.IsAdmin = info.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
 
             var email = info.Principal.Claims.Where(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").FirstOrDefault();
             if (email != null)
             {
                 person.Mail = email.Value;
-                _personRepo.Save();
-                HttpContext.Session.SetString("email", email.Value);
             }
+            _personRepo.Save();
 
+            HttpContext.Session.SetInt32("personId", person.Id);
             return Redirect("/index");
         }
     }
