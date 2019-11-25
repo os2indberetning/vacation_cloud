@@ -14,30 +14,17 @@ namespace Presentation.Web.Auth
     {
         IUserClaimsPrincipalFactory<IdentityPerson> _inner;
         ExternalLoginInfo _externalLoginInfo;
-        private readonly IGenericRepository<Person> _personRepo;
 
         public Saml2ClaimsFactory(
             IUserClaimsPrincipalFactory<IdentityPerson> inner,
-            ExternalLoginInfo externalLoginInfo,
-            IGenericRepository<Person> personRepo)
+            ExternalLoginInfo externalLoginInfo)
         {
             _inner = inner;
             _externalLoginInfo = externalLoginInfo;
-            _personRepo = personRepo;
         }
 
         public async Task<ClaimsPrincipal> CreateAsync(IdentityPerson user)
         {
-
-            user.Person.IsAdmin = _externalLoginInfo.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
-            var email = _externalLoginInfo.Principal.Claims.Where(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").FirstOrDefault();
-            if (email != null)
-            {
-                user.Person.Mail = email.Value;
-            }
-            _personRepo.Update(user.Person);
-            _personRepo.Save();
-
             var principal = await _inner.CreateAsync(user);
 
             var logoutInfo = _externalLoginInfo.Principal.FindFirst(Saml2ClaimTypes.LogoutNameIdentifier);

@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Presentation.Web.Auth;
-using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Presentation.Web.Controllers.API
@@ -18,12 +16,14 @@ namespace Presentation.Web.Controllers.API
     public class SAMLController : ControllerBase
     {
         private readonly SignInManager<IdentityPerson> _signInManager;
+        private readonly UserManager<IdentityPerson> _userManager;
         private readonly IGenericRepository<Person> _personRepo;
         private readonly ILogger<SAMLController> _logger;
 
-        public SAMLController(SignInManager<IdentityPerson> signinManager, IGenericRepository<Person> personRepo, ILogger<SAMLController> logger)
+        public SAMLController(SignInManager<IdentityPerson> signinManager, UserManager<IdentityPerson> userManager, IGenericRepository<Person> personRepo, ILogger<SAMLController> logger)
         {
             _signInManager = signinManager;
+            _userManager = userManager;
             _personRepo = personRepo;
             _logger = logger;
         }
@@ -43,10 +43,20 @@ namespace Presentation.Web.Controllers.API
         public async Task<ActionResult> Callback()
         {
             var info = await _signInManager.GetExternalLoginInfoAsync();
-            _signInManager.ClaimsFactory = new Saml2ClaimsFactory(_signInManager.ClaimsFactory, info,_personRepo);
+            _signInManager.ClaimsFactory = new Saml2ClaimsFactory(_signInManager.ClaimsFactory, info);
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+
             if (result.Succeeded)
             {
+                // update user admin and email field from claims
+                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                user.Person.IsAdmin = info.Principal.Claims.Any(c => c.Type == "roles" && c.Value == "administrator");
+                var email = info.Principal.Claims.Where(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").FirstOrDefault();
+                if (email != null)
+                {
+                    user.Person.Mail = email.Value;
+                }
+                _personRepo.Save();
                 _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
             }
             return Redirect("/index");

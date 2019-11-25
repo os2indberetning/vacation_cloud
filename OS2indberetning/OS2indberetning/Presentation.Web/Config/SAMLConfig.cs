@@ -14,12 +14,11 @@ namespace Presentation.Web.Config
     {
         public static IServiceCollection AddSAMLAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var l = services.BuildServiceProvider().GetService<ILogger<Program>>();
-            l.LogInformation("testing it ###");
+            var logger = services.BuildServiceProvider().GetService<ILogger<Saml2Options>>();
             services.AddAuthentication()
                 .AddSaml2(options =>
                 {
-                    options.SPOptions.Logger = new AspNetCoreLoggerAdapter(l);
+                    options.SPOptions.Logger = new AspNetCoreLoggerAdapter(logger);
                     options.SPOptions.EntityId = new EntityId(configuration["SAML:EntityId"]);
                     options.SPOptions.PublicOrigin = new Uri(configuration["SAML:PublicOrigin"]);
                     options.IdentityProviders.Add(
