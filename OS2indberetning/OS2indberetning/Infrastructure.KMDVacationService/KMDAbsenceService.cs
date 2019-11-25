@@ -4,24 +4,24 @@ using Core.DomainServices.Interfaces;
 using System;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Infrastructure.KMDVacationService
 {
     public class KMDAbsenceService : IKMDAbsenceService
     {
-        private IConfiguration _config;
+        private X509Certificate2 certificate;
 
         public KMDAbsenceService(IConfiguration config)
         {
-            _config = config;
+            certificate = new X509Certificate2(config["KMDVacationService:CertificateFilename"], config["KMDVacationService:CertificatePassword"]);
         }
         public void SetAbsence(IList<KMDAbsenceReport> absenceReports)
         {
             //var webService = new SetAbsenceAttendance.SetAbsenceAttendance_OS_SIClient("HTTPS_Port");
-            // todo set bindings etc
+            // todo set bindings etc - maybe default is ok
             var webService = new SetAbsenceAttendance.SetAbsenceAttendance_OS_SIClient();
-            var certName = _config["PROTECTED_CERTIFICATE_NAME"];
-            webService.ClientCredentials.ClientCertificate.SetCertificate(System.Security.Cryptography.X509Certificates.StoreLocation.LocalMachine, System.Security.Cryptography.X509Certificates.StoreName.My, System.Security.Cryptography.X509Certificates.X509FindType.FindBySubjectName, certName);
+            webService.ClientCredentials.ClientCertificate.Certificate = certificate;
 
             foreach (var report in absenceReports)
             {
@@ -73,25 +73,23 @@ namespace Infrastructure.KMDVacationService
         {
             var children = new List<Child>();
 #if !DEBUG
-            using (var webService = new GetChildren.GetChildren_OS_SIClient("HTTPS_Port2"))
+            var webService = new GetChildren.GetChildren_OS_SIClient();
+            // todo set bindings etc - maybe default is ok
+            webService.ClientCredentials.ClientCertificate.Certificate = certificate;
+
+            var request = new GetChildren.GetChildrenRequest();
+            request.PersonnelNumber = employment.EmploymentId.ToString();
+
+            var response = webService.GetChildren_OS_SI(request);
+
+            foreach (var child in response.Child)
             {
-                var certName = ConfigurationManager.AppSettings["PROTECTED_CERTIFICATE_NAME"];
-                webService.ClientCredentials.ClientCertificate.SetCertificate(System.Security.Cryptography.X509Certificates.StoreLocation.LocalMachine, System.Security.Cryptography.X509Certificates.StoreName.My, System.Security.Cryptography.X509Certificates.X509FindType.FindBySubjectName, certName);
-
-                var request = new GetChildren.GetChildrenRequest();
-                request.PersonnelNumber = employment.EmploymentId.ToString();
-
-                var response = webService.GetChildren_OS_SI(request);
-                
-                foreach(var child in response.Child)
+                children.Add(new Child
                 {
-                    children.Add(new Child
-                    {
-                        Id = int.Parse(child.ChildNumber),
-                        FirstName = child.FirstName,
-                        LastName = child.LastName
-                    });
-                }
+                    Id = int.Parse(child.ChildNumber),
+                    FirstName = child.FirstName,
+                    LastName = child.LastName
+                });
             }
 #endif
             return children;
