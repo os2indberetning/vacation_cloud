@@ -16,8 +16,8 @@ namespace Core.ApplicationServices.FileGenerator
         public ReportFileWriter(IConfiguration config)
         {
             _config = config;
-            _filePathName = _config["PROTECTED_KMDFilePath"] + @"\" + _config["PROTECTED_KMDFileName"];
-            _backupFilePathName = _config["PROTECTED_KMDBackupFilePath"] + @"\" + DateTime.Now.ToString("yyyymmdd-hhmmss");
+            _filePathName = _config["KMDFilePath"] + @"\" + _config["KMDFileName"];
+            _backupFilePathName = _config["KMDBackupFilePath"] + @"\" + DateTime.Now.ToString("yyyymmdd-hhmmss");
         }
 
         public bool WriteRecordsToFile(ICollection<FileRecord> recordList)
@@ -63,7 +63,7 @@ namespace Core.ApplicationServices.FileGenerator
         {
             using (var writer = new StreamWriter(_filePathName))
             {
-                writer.WriteLine(_config["PROTECTED_KMDHeader"]);
+                writer.WriteLine(_config["KMDHeader"]);
                 writer.Close();
             }
         }

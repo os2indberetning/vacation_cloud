@@ -19,15 +19,14 @@ namespace Core.ApplicationServices.MailerService.Impl
             _config = config;
             _smtpClient = new SmtpClient()
             {
-                Host = _config["PROTECTED_SMTP_HOST"],
-                Port = int.Parse(_config["PROTECTED_SMTP_HOST_PORT"]),
-                EnableSsl = false,
+                Host = _config["Mail:Host"],
+                Port = int.Parse(_config["Mail:Port"]),
+                EnableSsl = true,
                 Credentials = new NetworkCredential()
                 {
-                    UserName = _config["PROTECTED_SMTP_USER"],
-                    Password = _config["PROTECTED_SMTP_PASSWORD"]
+                    UserName = _config["Mail:User"],
+                    Password = _config["Mail:Password"]
                 }
-
             };
 
         }
@@ -46,7 +45,7 @@ namespace Core.ApplicationServices.MailerService.Impl
             }
             var msg = new MailMessage();
             msg.To.Add(to);
-            msg.From = new MailAddress(_config["PROTECTED_MAIL_FROM_ADDRESS"]);
+            msg.From = new MailAddress(_config["Mail:FromAddress"]);
             msg.Body = body;
             msg.Subject = subject;
             try

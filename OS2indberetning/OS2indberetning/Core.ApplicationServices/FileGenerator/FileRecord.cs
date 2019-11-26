@@ -34,14 +34,14 @@ namespace Core.ApplicationServices.FileGenerator
             TFCode = report.TFCode;
             IsAdministrativeWorker =
                 report.Employment.CostCenter.ToString()
-                    .StartsWith(getSetting("PROTECTED_AdministrativeCostCenterPrefix"));
+                    .StartsWith(getSetting("AdministrativeCostCenterPrefix"));
             if ( ! string.IsNullOrWhiteSpace(report.AccountNumber) && report.AccountNumber.Length == 10)
             {
                 Account = report.AccountNumber;
             }
             else if (IsAdministrativeWorker)
             {
-                Account = getSetting("PROTECTED_AdministrativeAccount");
+                Account = getSetting("AdministrativeAccount");
             }
         }
 
@@ -52,14 +52,14 @@ namespace Core.ApplicationServices.FileGenerator
 
             var builder = new StringBuilder();
 
-            builder.Append(getSetting("PROTECTED_KMDStaticNr"));        //KMD statisk identifier
-            builder.Append(getSetting("PROTECTED_CommuneNr"));          //Syddjurs' KommuneNr.
+            builder.Append(getSetting("KMDStaticNr"));        //KMD statisk identifier
+            builder.Append(getSetting("CommuneNr"));          //Syddjurs' KommuneNr.
             builder.Append(EmploymentType);                             //Ansættelsesform (0,1,3)
             builder.Append(CprNr);                                      //CPR Nr.
             builder.Append(ExtraNumber);                                //Ekstra ciffer (0,1,2,3 nn)
             builder.Append(TFCode);                                     //TF Kode
             builder.Append(DistanceStringBuilder(distance.ToString())); //Kørte Km
-            builder.Append(getSetting("PROTECTED_KMDReservedNr"));      //KMD reserverede pladser
+            builder.Append(getSetting("KMDReservedNr"));      //KMD reserverede pladser
 
             if ( ! string.IsNullOrWhiteSpace(Account) && Account.Length == 10)
             {

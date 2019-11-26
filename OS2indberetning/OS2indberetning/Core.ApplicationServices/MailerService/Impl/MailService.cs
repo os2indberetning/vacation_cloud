@@ -30,18 +30,18 @@ namespace Core.ApplicationServices.MailerService.Impl
         {
             var reports = GetLeadersWithPendingReportsMails();
 
-            var driveBody = _config["PROTECTED_MAIL_BODY_DRIVE"];
-            driveBody = driveBody.Replace("####", payRoleDateTime.ToString("dd-MM-yyyy"));
+            //var driveBody = _config[""];
+            //driveBody = driveBody.Replace("####", payRoleDateTime.ToString("dd-MM-yyyy"));
 
             foreach (var report in reports)
             {
                 switch (report.ReportType)
                 {
                     case ReportType.Drive:
-                        // _mailSender.SendMail(report.ResponsibleLeader.Mail, ConfigurationManager.AppSettings["PROTECTED_MAIL_SUBJECT_DRIVE"], driveBody);
+                        // _mailSender.SendMail(report.ResponsibleLeader.Mail, ConfigurationManager.AppSettings[""], driveBody);
                         break;
                     case ReportType.Vacation:
-                        _mailSender.SendMail(report.ResponsibleLeader.Mail, _config["PROTECTED_MAIL_SUBJECT_VACATION"], _config["PROTECTED_MAIL_BODY_VACATION"]);
+                        _mailSender.SendMail(report.ResponsibleLeader.Mail, _config["Mail:VacationMail:Subject"], _config["Mail:VacationMail:Body"]);
                         break;
                     default:
                         _logger.LogError("Kunne ikke finde typen af rapport: " + report.Id);
