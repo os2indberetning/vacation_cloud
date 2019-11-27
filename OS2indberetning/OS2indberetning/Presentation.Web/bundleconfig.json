@@ -45,10 +45,10 @@
       "wwwroot/Scripts/angular-sanitize.min.js"
     ],
     "minify": {
-      "enabled": true,
+      "enabled": false,
       "renameLocals": false
     },
-    "sourceMap": true
+    "sourceMap": false
   },
   {
     "outputFileName": "wwwroot/Bundles/app-core.js",
@@ -59,10 +59,10 @@
       "wwwroot/App/Core/**/*.js"
     ],
     "minify": {
-      "enabled": true,
+      "enabled": false,
       "renameLocals": false
     },
-    "sourceMap": true
+    "sourceMap": false
   },
   {
     "outputFileName": "wwwroot/Bundles/app-drive.js",
@@ -71,10 +71,10 @@
       "wwwroot/App/Drive/**/*.js"
     ],
     "minify": {
-      "enabled": true,
+      "enabled": false,
       "renameLocals": false
     },
-    "sourceMap": true
+    "sourceMap": false
   },
   {
     "outputFileName": "wwwroot/Bundles/app-vacation.js",
@@ -83,10 +83,10 @@
       "wwwroot/App/Vacation/**/*.js"
     ],
     "minify": {
-      "enabled": true,
+      "enabled": false,
       "renameLocals": false
     },
-    "sourceMap": true
+    "sourceMap": false
   }
 
 
