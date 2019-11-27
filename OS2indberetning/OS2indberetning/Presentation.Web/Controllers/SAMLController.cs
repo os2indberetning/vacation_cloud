@@ -57,7 +57,7 @@ namespace Presentation.Web.Controllers.API
                     user.Person.Mail = email.Value;
                 }
                 _personRepo.Save();
-                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
+                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", user.Person.FullName, info.LoginProvider);
             }
             return Redirect("/index");
         }
