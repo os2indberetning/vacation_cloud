@@ -228,8 +228,6 @@
     <None Include="wwwroot\Content\Bootstrap\loading.gif" />
     <None Include="wwwroot\Content\Bootstrap\sprite.png" />
     <None Include="wwwroot\Content\custom.css" />
-    <None Include="wwwroot\Content\favrskov-favicon.ico" />
-    <None Include="wwwroot\Content\favrskov-logo.png" />
     <None Include="wwwroot\Content\jasmine\jasmine.css" />
     <None Include="wwwroot\Content\jasmine\jasmine_favicon.png" />
     <None Include="wwwroot\Content\kendo\Black\editor.png" />
