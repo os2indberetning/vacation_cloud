@@ -23,7 +23,7 @@ namespace Core.ApplicationServices.Test
         public void Test1()
         {
             var mailSender = new MailSender(new NullLogger<MailSender>(), config);
-            mailSender.SendMail("pso@digital-identity", "testsubject", "testbody");
+            mailSender.SendMail("pso@digital-identity.dk", "testsubject", "testbody");
         }
     }
 }
