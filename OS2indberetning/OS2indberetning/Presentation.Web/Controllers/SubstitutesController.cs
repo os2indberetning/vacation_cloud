@@ -79,7 +79,7 @@ namespace OS2Indberetning.Controllers
         /// <param name="substitute">The substitute to be posted</param>
         /// <returns>The posted substitute</returns>
         [EnableQuery]
-        public new IActionResult Post(Substitute substitute)
+        public new IActionResult Post([FromBody] Substitute substitute)
         {
             if (CurrentUser.IsAdmin || CurrentUser.Id.Equals(substitute.LeaderId))
             {
