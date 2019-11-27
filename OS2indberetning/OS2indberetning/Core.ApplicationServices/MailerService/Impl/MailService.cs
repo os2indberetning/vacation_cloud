@@ -11,16 +11,16 @@ namespace Core.ApplicationServices.MailerService.Impl
 {
     public class MailService : IMailService
     {
-        private readonly IGenericRepository<Report> _reportRepo;
-        private readonly IMailSender _mailSender;
-        private readonly ILogger _logger;
-        private readonly IConfiguration _config;
+        private readonly IGenericRepository<Report> reportRepo;
+        private readonly IMailSender mailSender;
+        private readonly ILogger logger;
+        private readonly IConfiguration config;
         public MailService(IGenericRepository<Report> reportRepo, IMailSender mailSender,  ILogger logger, IConfiguration config)
         {
-            _reportRepo = reportRepo;
-            _mailSender = mailSender;
-            _logger = logger;
-            _config = config;
+            this.reportRepo = reportRepo;
+            this.mailSender = mailSender;
+            this.logger = logger;
+            this.config = config;
         }
 
         /// <summary>
@@ -41,10 +41,10 @@ namespace Core.ApplicationServices.MailerService.Impl
                         // _mailSender.SendMail(report.ResponsibleLeader.Mail, ConfigurationManager.AppSettings[""], driveBody);
                         break;
                     case ReportType.Vacation:
-                        _mailSender.SendMail(report.ResponsibleLeader.Mail, _config["Mail:VacationMail:Subject"], _config["Mail:VacationMail:Body"]);
+                        mailSender.SendMail(report.ResponsibleLeader.Mail, config["Mail:VacationMail:Subject"], config["Mail:VacationMail:Body"]);
                         break;
                     default:
-                        _logger.LogError("Kunne ikke finde typen af rapport: " + report.Id);
+                        logger.LogError("Kunne ikke finde typen af rapport: " + report.Id);
                         break;
                 }
 
@@ -58,13 +58,13 @@ namespace Core.ApplicationServices.MailerService.Impl
         /// <returns>List of email addresses.</returns>
         public IEnumerable<Report> GetLeadersWithPendingReportsMails()
         {
-            var reports = _reportRepo.AsNoTracking().Where(r => r.Status == ReportStatus.Pending).ToList();
+            var reports = reportRepo.AsNoTracking().Where(r => r.Status == ReportStatus.Pending).ToList();
 
             var reportsWithNoLeader = reports.Where(report => report.ResponsibleLeader == null);
 
             foreach (var report in reportsWithNoLeader)
             {
-                _logger.LogError(report.Person.FullName + "s indberetning har ingen leder. Indberetningen kan derfor ikke godkendes.");
+                logger.LogError(report.Person.FullName + "s indberetning har ingen leder. Indberetningen kan derfor ikke godkendes.");
             }
 
             return reports.Where(report => report.ResponsibleLeaderId != null && !string.IsNullOrEmpty(report.ResponsibleLeader.Mail) && report.ResponsibleLeader.RecieveMail);

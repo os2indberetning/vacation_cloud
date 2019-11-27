@@ -10,22 +10,22 @@ namespace Core.ApplicationServices.MailerService.Impl
     public class MailSender : IMailSender
     {
         private readonly SmtpClient _smtpClient;
-        private readonly ILogger<MailSender> _logger;
-        private readonly IConfiguration _config;
+        private readonly ILogger<MailSender> logger;
+        private readonly IConfiguration config;
 
         public MailSender(ILogger<MailSender> logger, IConfiguration config)
         {
-            _logger = logger;
-            _config = config;
+            this.logger = logger;
+            this.config = config;
             _smtpClient = new SmtpClient()
             {
-                Host = _config["Mail:Host"],
-                Port = int.Parse(_config["Mail:Port"]),
+                Host = this.config["Mail:Host"],
+                Port = int.Parse(this.config["Mail:Port"]),
                 EnableSsl = true,
                 Credentials = new NetworkCredential()
                 {
-                    UserName = _config["Mail:User"],
-                    Password = _config["Mail:Password"]
+                    UserName = this.config["Mail:User"],
+                    Password = this.config["Mail:Password"]
                 }
             };
 
@@ -39,13 +39,19 @@ namespace Core.ApplicationServices.MailerService.Impl
         /// <param name="body">Body of the email.</param>
         public void SendMail(string to, string subject, string body)
         {
+            if (!Boolean.Parse(config["Mail:ServiceEnabled"])) 
+            {
+                logger.LogWarning("MailService is disabled. Tried to send mail\nTo: {0}\nSubject: {1}\nBody: {2}", to, subject, body);
+                return;
+            }
+
             if (String.IsNullOrWhiteSpace(to))
             {
                 return;
             }
             var msg = new MailMessage();
             msg.To.Add(to);
-            msg.From = new MailAddress(_config["Mail:FromAddress"]);
+            msg.From = new MailAddress(config["Mail:FromAddress"]);
             msg.Body = body;
             msg.Subject = subject;
             try
@@ -54,7 +60,7 @@ namespace Core.ApplicationServices.MailerService.Impl
             }
             catch (Exception e )
             {
-                _logger.LogError(e, "Fejl under afsendelse af mail. Mail er ikke afsendt.");
+                logger.LogError(e, "Fejl under afsendelse af mail. Mail er ikke afsendt.");
             }
         }
     }
