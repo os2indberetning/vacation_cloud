@@ -291,9 +291,7 @@ namespace Core.ApplicationServices
                 report.VacationType == VacationType.SixthVacationWeek)
             {
                 var absenceReport = _absenceBuilder.Create(report);
-#if !DEBUG
                 _absenceService.SetAbsence(absenceReport);
-#endif
             }
 
             report.ProcessedDateTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -319,9 +317,7 @@ namespace Core.ApplicationServices
                 report.VacationType == VacationType.SixthVacationWeek)
             {
                 var absenceReport = _absenceBuilder.Delete(report);
-#if !DEBUG
                 _absenceService.SetAbsence(absenceReport);
-#endif
             }
             report.ProcessedDateTimestamp = 0;
         }
