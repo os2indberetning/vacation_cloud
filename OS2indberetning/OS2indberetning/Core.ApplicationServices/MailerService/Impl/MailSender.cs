@@ -41,12 +41,13 @@ namespace Core.ApplicationServices.MailerService.Impl
         {
             if (!Boolean.Parse(config["Mail:ServiceEnabled"])) 
             {
-                logger.LogWarning("MailService is disabled. Tried to send mail\nTo: {0}\nSubject: {1}\nBody: {2}", to, subject, body);
+                logger.LogWarning("MailService is disabled. Tried to send mail.\nTo: {0}\nSubject: {1}\nBody: {2}", to, subject, body);
                 return;
             }
 
             if (String.IsNullOrWhiteSpace(to))
             {
+                logger.LogWarning("Attempted to send mail, but 'to' field is empty.\nSubject: {0}\nBody: {1}", subject, body);
                 return;
             }
             var msg = new MailMessage();
