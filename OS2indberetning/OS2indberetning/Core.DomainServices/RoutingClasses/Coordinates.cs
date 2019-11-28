@@ -1,6 +1,8 @@
 ﻿namespace Core.DomainServices.RoutingClasses
 {
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public class Coordinates
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         public enum CoordinatesType
         {

@@ -1,7 +1,11 @@
 ﻿
 namespace Core.DomainModel
 {
+#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
     public class Address
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
     {
         public int Id { get; set; }
         public string StreetName { get; set; }
@@ -34,6 +38,7 @@ namespace Core.DomainModel
         {
             return !(a == b);
         }
+
 
     }
 }
