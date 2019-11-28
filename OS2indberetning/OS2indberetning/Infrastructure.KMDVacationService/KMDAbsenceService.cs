@@ -21,9 +21,9 @@ namespace Infrastructure.KMDVacationService
         }
         public void SetAbsence(IList<KMDAbsenceReport> absenceReports)
         {
-            if (!Boolean.Parse(config["KMDVacationService:ServiceEnabled"]))
+            if (!Boolean.Parse(config["KMDVacationService:SetAbsenceAttendanceEnabled"]))
             {
-                logger.LogWarning("KMDVacationService is disabled. Not setting any absenceReports");
+                logger.LogWarning("KMDVacationService SetAbsenceAttendance is disabled. Not setting any absenceReports");
                 return;
             }
 
@@ -84,9 +84,9 @@ namespace Infrastructure.KMDVacationService
         public List<Child> GetChildren(Employment employment)
         {
             var children = new List<Child>();
-            if (!Boolean.Parse(config["KMDVacationService:ServiceEnabled"]))
+            if (!Boolean.Parse(config["KMDVacationService:GetChildrenEnabled"]))
             {
-                logger.LogWarning("KMDVacationService is disabled. Returning empty list of children");
+                logger.LogWarning("KMDVacationService GetChildren is disabled. Returning empty list of children");
                 return children;
             }
 
