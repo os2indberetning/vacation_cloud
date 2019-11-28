@@ -209,9 +209,10 @@ namespace Core.ApplicationServices
                     var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                     var personToUpdate = person;
                     mapAPIPerson(apiPerson, ref personToUpdate);
+                    _personRepo.Update(personToUpdate);
+                    _personRepo.Save();
                     UpdateHomeAddress(apiPerson, ref personToUpdate);
                     UpdateVacationBalances(apiPerson, personToUpdate);
-                    _personRepo.Update(personToUpdate);
                 }
                 catch (Exception e)
                 {
