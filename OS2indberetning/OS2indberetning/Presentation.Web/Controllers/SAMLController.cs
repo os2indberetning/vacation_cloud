@@ -58,8 +58,12 @@ namespace Presentation.Web.Controllers.API
                 }
                 _personRepo.Save();
                 _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", user.Person.FullName, info.LoginProvider);
+                return Redirect("/index");
             }
-            return Redirect("/index");
+            else
+            {
+                return Redirect("/index?loginFailed=true");
+            }
         }
     }
 }

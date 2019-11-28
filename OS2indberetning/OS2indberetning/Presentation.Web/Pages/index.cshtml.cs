@@ -6,6 +6,8 @@ namespace Presentation.Web.Pages
 {
     public class indexModel : PageModel
     {
+        [FromQuery(Name = "loginFailed")]
+        public bool loginFailed { get; set; }
         public string Version { get; set; }
         public indexModel(IConfiguration Configuration)
         {
@@ -14,7 +16,7 @@ namespace Presentation.Web.Pages
 
         public IActionResult OnGet()
         {
-            if (!User.Identity.IsAuthenticated)
+            if (!loginFailed && !User.Identity.IsAuthenticated)
             {
                 return Redirect("/SAML/Login");
             }

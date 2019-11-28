@@ -1,6 +1,7 @@
 ﻿using Core.DomainModel;
 using Core.DomainServices;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,12 @@ namespace Presentation.Web.Auth
     public class PersonUserStore : IUserStore<IdentityPerson>, IUserLoginStore<IdentityPerson>
     {
         private readonly IGenericRepository<Person> _personRepo;
+        private readonly ILogger<PersonUserStore> logger;
 
-        public PersonUserStore(IGenericRepository<Person> personRepo)
+        public PersonUserStore(IGenericRepository<Person> personRepo, ILogger<PersonUserStore> logger)
         {
             _personRepo = personRepo;
+            this.logger = logger;
         }
 
         public Task AddLoginAsync(IdentityPerson user, UserLoginInfo login, CancellationToken cancellationToken)
@@ -49,16 +52,26 @@ namespace Presentation.Web.Auth
 
         public Task<IdentityPerson> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
-            var person = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(providerKey.Replace("-", "")));
-            if (person == null)
+            var cpr = providerKey.Replace("-", "");
+            try
             {
-                throw new UnauthorizedAccessException("Bruger ikke fundet i databasen.");
+                var person = _personRepo.AsQueryable().FirstOrDefault(p => p.CprNumber.Equals(providerKey.Replace("-", "")));
+                if (person == null)
+                {
+                    throw new UnauthorizedAccessException("Bruger ikke fundet i databasen.");
+                }
+                if (!person.IsActive)
+                {
+                    throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
+                }
+                return Task.FromResult(new IdentityPerson(person));
             }
-            if (!person.IsActive)
+            catch (Exception e)
             {
-                throw new UnauthorizedAccessException("Inaktiv bruger forsøgte at logge ind.");
+                cpr = cpr.Length == 10 ? String.Format("{0}-xxxx", cpr.Substring(0, 6)) : cpr;
+                logger.LogWarning(e, "Failed to find user in store. Cpr: {0}",cpr);
+                return Task.FromResult<IdentityPerson>(null);
             }
-            return Task.FromResult(new IdentityPerson(person));
         }
 
         public Task<IdentityPerson> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
