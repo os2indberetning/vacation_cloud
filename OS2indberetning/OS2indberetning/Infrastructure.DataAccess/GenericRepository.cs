@@ -76,6 +76,7 @@ namespace Infrastructure.DataAccess
 
         public void Save()
         {
+            _context.ChangeTracker.DetectChanges();
             _context.SaveChanges();
         }
 
