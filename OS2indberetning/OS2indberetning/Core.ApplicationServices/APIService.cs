@@ -141,19 +141,28 @@ namespace Core.ApplicationServices
             _logger.LogDebug("Orgunits to be updated: {0}", updateTotal);
             foreach (var orgUnit in toBeUpdated)
             {
-                if (++updateCounter % 10 == 0)
+                try
                 {
-                    _logger.LogDebug("Updating orgunit {0} of {1}",updateCounter, updateTotal);
+                    if (++updateCounter % 10 == 0)
+                    {
+                        _logger.LogDebug("Updating orgunit {0} of {1}", updateCounter, updateTotal);
+                    }
+                    var apiOrgUnit = apiOrgUnits.Where(s => s.Id == orgUnit.OrgId.ToString()).First();
+                    var orgToUpdate = orgUnit;
+                    mapAPIOrgUnit(apiOrgUnit, ref orgToUpdate);
+                    if (orgToUpdate.Address == null)
+                    {
+                        _logger.LogWarning("Skipping orgunit update because it has no address. OrgId: {0} Name: {1}", orgToUpdate.OrgId, orgToUpdate.LongDescription);
+                        continue;
+                    }
+                    _orgUnitRepo.Update(orgToUpdate);
                 }
-                var apiOrgUnit = apiOrgUnits.Where(s => s.Id == orgUnit.OrgId.ToString()).First();
-                var orgToUpdate = orgUnit;
-                mapAPIOrgUnit(apiOrgUnit, ref orgToUpdate);
-                if (orgToUpdate.Address == null)
+                catch (Exception e)
                 {
-                    _logger.LogWarning("Skipping orgunit update because it has no address. OrgId: {0} Name: {1}", orgToUpdate.OrgId, orgToUpdate.LongDescription);
-                    continue;
+                    _logger.LogError(e,"Failed to update Orgunit. OrgId: {0} Name: {1}", orgUnit.OrgId, orgUnit.LongDescription);
+                    throw;
                 }
-                _orgUnitRepo.Update(orgToUpdate);
+
             }
             _orgUnitRepo.Save();
         }
@@ -192,16 +201,24 @@ namespace Core.ApplicationServices
             _logger.LogDebug("Persons to be updated: {0}", updateTotal);
             foreach (var person in toBeUpdated)
             {
-                if (++updateCounter % 10 == 0)
+                try
                 {
-                    _logger.LogDebug("Updating person {0} of {1}", updateCounter, updateTotal);
+                    if (++updateCounter % 10 == 0)
+                    {
+                        _logger.LogDebug("Updating person {0} of {1}", updateCounter, updateTotal);
+                    }
+                    var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
+                    var personToUpdate = person;
+                    mapAPIPerson(apiPerson, ref personToUpdate);
+                    UpdateHomeAddress(apiPerson, ref personToUpdate);
+                    UpdateVacationBalances(apiPerson, personToUpdate);
+                    _personRepo.Update(personToUpdate);
                 }
-                var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
-                var personToUpdate = person;
-                mapAPIPerson(apiPerson, ref personToUpdate);
-                UpdateHomeAddress(apiPerson, ref personToUpdate);
-                UpdateVacationBalances(apiPerson, personToUpdate);
-                _personRepo.Update(personToUpdate);
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to update Person. Name: {0}", person.FullName);
+                    throw;
+                }
             }
 
             // Handle deletes
