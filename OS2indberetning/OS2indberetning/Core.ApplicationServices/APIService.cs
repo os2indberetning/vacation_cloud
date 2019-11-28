@@ -204,7 +204,6 @@ namespace Core.ApplicationServices
                 UpdateVacationBalances(apiPerson, personToUpdate);
                 _personRepo.Update(personToUpdate);
             }
-            _personRepo.Save();
 
             // Handle deletes
             var deleteTotal = toBeDeleted.Count();
@@ -227,6 +226,7 @@ namespace Core.ApplicationServices
                 _personRepo.Update(personToBeDeleted);
             }
             _personRepo.Save();
+            _vacationBalanceRepo.Save();
         }
 
         private void UpdateVacationBalances(APIPerson apiPerson, Person person)
@@ -262,7 +262,6 @@ namespace Core.ApplicationServices
                     
                 }
             }
-            _vacationBalanceRepo.Save();
         }
 
         private void mapAPIPerson(APIPerson apiPerson, ref Person personToInsert)
