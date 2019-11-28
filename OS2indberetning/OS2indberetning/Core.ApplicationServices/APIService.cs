@@ -18,8 +18,7 @@ namespace Core.ApplicationServices
         private readonly IAddressLaunderer _actualLaunderer;
         private readonly IAddressCoordinates _coordinates;
         private readonly IGenericRepository<Person> _personRepo;
-        private readonly IGenericRepository<PersonalAddress> _personalAddressRepo;
-        private readonly AddressHistoryService _addressHistoryService;
+        //private readonly AddressHistoryService _addressHistoryService;
         private readonly ISubstituteService _subService;
         private readonly IGenericRepository<Substitute> _subRepo;
         private readonly IGenericRepository<Report> _reportRepo;
@@ -35,7 +34,7 @@ namespace Core.ApplicationServices
             IAddressLaunderer actualLaunderer,
             IAddressCoordinates coordinates,
             IGenericRepository<Person> personRepo,
-            AddressHistoryService addressHistoryService,
+            //AddressHistoryService addressHistoryService,
             ISubstituteService subService,
             IGenericRepository<Substitute> subRepo,
             IGenericRepository<Report> reportRepo,
@@ -49,7 +48,7 @@ namespace Core.ApplicationServices
             _actualLaunderer = actualLaunderer;
             _coordinates = coordinates;
             _personRepo = personRepo;
-            _addressHistoryService = addressHistoryService;
+            //_addressHistoryService = addressHistoryService;
             _subService = subService;
             _subRepo = subRepo;
             _reportRepo = reportRepo;
