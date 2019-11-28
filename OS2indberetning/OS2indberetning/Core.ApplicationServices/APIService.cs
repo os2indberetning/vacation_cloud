@@ -160,7 +160,6 @@ namespace Core.ApplicationServices
                 catch (Exception e)
                 {
                     _logger.LogError(e,"Failed to update Orgunit. OrgId: {0} Name: {1}", orgUnit.OrgId, orgUnit.LongDescription);
-                    throw;
                 }
 
             }
@@ -217,7 +216,6 @@ namespace Core.ApplicationServices
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Failed to update Person. Name: {0}", person.FullName);
-                    throw;
                 }
             }
 
