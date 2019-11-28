@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Presentation.Web.Auth;
 using Presentation.Web.Config;
-using System;
 using System.IO;
 
 namespace Presentation.Web
@@ -41,7 +40,7 @@ namespace Presentation.Web
             services.AddSAMLAuthentication(Configuration);
             services.AddAuthentication(o => o.AddScheme(APIAuthenticationHandler.AuthenticationScheme, a => a.HandlerType = typeof(APIAuthenticationHandler)));
 
-            services.AddSession(s => s.IdleTimeout = TimeSpan.FromSeconds(30));
+            services.AddJobs(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -6,7 +6,7 @@ namespace Core.ApplicationServices.MailerService.Interface
 {
     public interface IMailService
     {
-        void SendMails(DateTime payRoleDateTime);
+        void SendMails();
         IEnumerable<Report> GetLeadersWithPendingReportsMails();
     }
 }

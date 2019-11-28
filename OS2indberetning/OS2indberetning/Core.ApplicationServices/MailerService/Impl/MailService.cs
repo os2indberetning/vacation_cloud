@@ -13,9 +13,9 @@ namespace Core.ApplicationServices.MailerService.Impl
     {
         private readonly IGenericRepository<Report> reportRepo;
         private readonly IMailSender mailSender;
-        private readonly ILogger logger;
+        private readonly ILogger<MailService> logger;
         private readonly IConfiguration config;
-        public MailService(IGenericRepository<Report> reportRepo, IMailSender mailSender,  ILogger logger, IConfiguration config)
+        public MailService(IGenericRepository<Report> reportRepo, IMailSender mailSender,  ILogger<MailService> logger, IConfiguration config)
         {
             this.reportRepo = reportRepo;
             this.mailSender = mailSender;
@@ -26,12 +26,9 @@ namespace Core.ApplicationServices.MailerService.Impl
         /// <summary>
         /// Sends an email to all leaders with pending reports to be approved.
         /// </summary>
-        public void SendMails(DateTime payRoleDateTime)
+        public void SendMails()
         {
             var reports = GetLeadersWithPendingReportsMails();
-
-            //var driveBody = _config[""];
-            //driveBody = driveBody.Replace("####", payRoleDateTime.ToString("dd-MM-yyyy"));
 
             foreach (var report in reports)
             {
@@ -58,7 +55,7 @@ namespace Core.ApplicationServices.MailerService.Impl
         /// <returns>List of email addresses.</returns>
         public IEnumerable<Report> GetLeadersWithPendingReportsMails()
         {
-            var reports = reportRepo.AsNoTracking().Where(r => r.Status == ReportStatus.Pending).ToList();
+            var reports = reportRepo.AsQueryableLazy().Where(r => r.Status == ReportStatus.Pending).ToList();
 
             var reportsWithNoLeader = reports.Where(report => report.ResponsibleLeader == null);
 
