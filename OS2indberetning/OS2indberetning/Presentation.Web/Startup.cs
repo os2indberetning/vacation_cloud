@@ -41,6 +41,7 @@ namespace Presentation.Web
             services.AddAuthentication(o => o.AddScheme(APIAuthenticationHandler.AuthenticationScheme, a => a.HandlerType = typeof(APIAuthenticationHandler)));
 
             services.AddJobs(Configuration);
+            services.AddResponseCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,7 +57,7 @@ namespace Presentation.Web
             }
             InitializeDatabase(app);
             app.UseAuthentication();
-            app.UseSession();
+            app.UseResponseCaching();
             app.UseMvc(r => RouteConfig.Use(r));
             app.UseStaticFiles();
             app.UseFileServer(enableDirectoryBrowsing: false);

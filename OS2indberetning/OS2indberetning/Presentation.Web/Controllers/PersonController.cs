@@ -322,9 +322,13 @@ namespace OS2Indberetning.Controllers
         /// <returns></returns>
         [EnableQuery]
         [HttpGet]
+        [ResponseCache(Duration = 300, VaryByHeader = "Cookie", VaryByQueryKeys = new string[] { "id" })]
         public IActionResult Children(int id)
         {
-            //if (!CurrentUser.Employments.Any(x => x.Id == id)) return Unauthorized();
+            if (!CurrentUser.Employments.Any(x => x.Id == id))
+            {
+                return Unauthorized();
+            }
             var empl = _employmentRepo.AsQueryable().First(x => x.Id == id);
 
             var children = _person.GetChildren(empl);
