@@ -42,6 +42,7 @@ namespace OS2Indberetning.Controllers.Vacation
         /// <param name="getReportsWhereSubExists"></param>
         /// <returns>DriveReports</returns>
         [EnableQuery]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Get(ODataQueryOptions<VacationReport> queryOptions, string status = "", int leaderId = 0, bool getReportsWhereSubExists = false)
         {
             var queryable = GetQueryable(queryOptions);

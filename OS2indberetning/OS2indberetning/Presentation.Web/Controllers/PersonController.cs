@@ -68,8 +68,7 @@ namespace OS2Indberetning.Controllers
         /// <returns>The user currently logged in.</returns>
         [EnableQuery(MaxExpansionDepth = 4)]
         // Disable caching.
-        // todo how to disable cache in dotnetcore??
-        //[OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public Person GetCurrentUser()
         {
             var currentDateTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
