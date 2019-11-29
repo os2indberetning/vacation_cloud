@@ -154,7 +154,7 @@ namespace Infrastructure.DataAccess
         public PropertyInfo GetPrimaryKeyProperty()
         {
             var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties.Select(x => x.Name).Single();
-            return typeof(T).GetType().GetProperty(keyName);
+            return typeof(T).GetProperty(keyName);
         }
     }
 }

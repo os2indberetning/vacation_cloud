@@ -29,11 +29,11 @@
                 $scope.dateErrorMessage = "* Du skal vælge en gyldig adviseringsdato.";
             }
 
-            $scope.payDateErrorMessage = "";
-            if ($scope.payRoleDate == undefined) {
-                error = true;
-                $scope.payDateErrorMessage = "* Du skal vælge en gyldig lønkørselsdato.";
-            }
+            //$scope.payDateErrorMessage = "";
+            //if ($scope.payRoleDate == undefined) {
+            //    error = true;
+            //    $scope.payDateErrorMessage = "* Du skal vælge en gyldig lønkørselsdato.";
+            //}
 
             var result = {};
             if ($scope.repeatMonthly == "true") {
