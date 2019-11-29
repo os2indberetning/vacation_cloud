@@ -22,6 +22,7 @@ namespace OS2Indberetning.Controllers
         /// <param name="queryOptions"></param>
         /// <returns>MailNotifications</returns>
         [EnableQuery]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IQueryable<MailNotificationSchedule> Get(ODataQueryOptions<MailNotificationSchedule> queryOptions)
         {
             var res =  GetQueryable(queryOptions);
@@ -35,6 +36,7 @@ namespace OS2Indberetning.Controllers
         /// <param name="key"></param>
         /// <param name="queryOptions"></param>
         /// <returns>A single MailNotification</returns>
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IQueryable<MailNotificationSchedule> Get([FromODataUri] int key, ODataQueryOptions<MailNotificationSchedule> queryOptions)
         {
             return GetQueryable(key, queryOptions);
@@ -60,7 +62,7 @@ namespace OS2Indberetning.Controllers
         /// <param name="MailNotificationSchedule">The MailNotification to be posted.</param>
         /// <returns></returns>
         [EnableQuery]
-        public new IActionResult Post(MailNotificationSchedule MailNotificationSchedule)
+        public new IActionResult Post([FromBody] MailNotificationSchedule MailNotificationSchedule)
         {
             return CurrentUser.IsAdmin ? base.Post(MailNotificationSchedule) : StatusCode(StatusCodes.Status403Forbidden);
         }
