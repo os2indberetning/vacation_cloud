@@ -18,12 +18,10 @@ namespace Core.ApplicationServices
         private readonly IAddressLaunderer _actualLaunderer;
         private readonly IAddressCoordinates _coordinates;
         private readonly IGenericRepository<Person> _personRepo;
-        //private readonly AddressHistoryService _addressHistoryService;
         private readonly ISubstituteService _subService;
         private readonly IGenericRepository<Substitute> _subRepo;
         private readonly IGenericRepository<Report> _reportRepo;
         private readonly IReportService<Report> _reportService;
-        private readonly IGenericRepository<VacationBalance> _vacationBalanceRepo;
         private readonly ILogger<APIService> _logger;
         private readonly CachedAddressLaunderer _launderer;
 
@@ -34,12 +32,10 @@ namespace Core.ApplicationServices
             IAddressLaunderer actualLaunderer,
             IAddressCoordinates coordinates,
             IGenericRepository<Person> personRepo,
-            //AddressHistoryService addressHistoryService,
             ISubstituteService subService,
             IGenericRepository<Substitute> subRepo,
             IGenericRepository<Report> reportRepo,
             IReportService<Report> reportService,
-            IGenericRepository<VacationBalance> vacationBalanceRepo,
             ILogger<APIService> logger
             )
         {
@@ -48,23 +44,19 @@ namespace Core.ApplicationServices
             _actualLaunderer = actualLaunderer;
             _coordinates = coordinates;
             _personRepo = personRepo;
-            //_addressHistoryService = addressHistoryService;
             _subService = subService;
             _subRepo = subRepo;
             _reportRepo = reportRepo;
             _reportService = reportService;
-            _vacationBalanceRepo = vacationBalanceRepo;
             _logger = logger;
 
             _launderer = new CachedAddressLaunderer(_cachedRepo, _actualLaunderer, _coordinates);
 
             // manually handle changes on these large datasets to improve performance
             _orgUnitRepo.SetChangeTrackingEnabled(false);
-            _cachedRepo.SetChangeTrackingEnabled(false);
             _personRepo.SetChangeTrackingEnabled(false);
             _subRepo.SetChangeTrackingEnabled(false);
             _reportRepo.SetChangeTrackingEnabled(false);
-            _vacationBalanceRepo.SetChangeTrackingEnabled(false);
         }
 
         public void UpdateOrganization(APIOrganizationDTO apiOrganizationDTO)
@@ -163,6 +155,7 @@ namespace Core.ApplicationServices
                 }
 
             }
+            _orgUnitRepo.DetectChanges();
             _orgUnitRepo.Save();
         }
 
@@ -188,11 +181,12 @@ namespace Core.ApplicationServices
                 personToInsert.Employments = new List<Employment>();
                 personToInsert.PersonalAddresses = new List<PersonalAddress>();
                 mapAPIPerson(apiPerson, ref personToInsert);
-                UpdateHomeAddress(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
                 _personRepo.Save();
-                UpdateVacationBalances(apiPerson, personToInsert);
+                UpdateHomeAddress(apiPerson, ref personToInsert);
+                UpdateVacationBalances(apiPerson, ref personToInsert);
             }
+            _personRepo.Save();
 
             // Handle updates
             var updateTotal = toBeUpdated.Count();
@@ -209,10 +203,9 @@ namespace Core.ApplicationServices
                     var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                     var personToUpdate = person;
                     mapAPIPerson(apiPerson, ref personToUpdate);
-                    _personRepo.Update(personToUpdate);
-                    _personRepo.Save();
                     UpdateHomeAddress(apiPerson, ref personToUpdate);
-                    UpdateVacationBalances(apiPerson, personToUpdate);
+                    UpdateVacationBalances(apiPerson, ref personToUpdate);
+                    _personRepo.Update(personToUpdate);
                 }
                 catch (Exception e)
                 {
@@ -240,11 +233,11 @@ namespace Core.ApplicationServices
                 }
                 _personRepo.Update(personToBeDeleted);
             }
+            _personRepo.DetectChanges();
             _personRepo.Save();
-            _vacationBalanceRepo.Save();
         }
 
-        private void UpdateVacationBalances(APIPerson apiPerson, Person person)
+        private void UpdateVacationBalances(APIPerson apiPerson, ref Person person)
         {
             var personId = person.Id;
             foreach (var apiEmployment in apiPerson.Employments)
@@ -253,28 +246,19 @@ namespace Core.ApplicationServices
                 if (apiVacationBalance != null)
                 {
                     var employment = person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
-                    var vacationBalance = _vacationBalanceRepo.AsQueryableLazy().FirstOrDefault(
-                        x => x.PersonId == personId && x.EmploymentId == employment.Id && x.Year == apiVacationBalance.VacationEarnedYear);
-
-                    if (vacationBalance == null)
+                    if (employment.VacationBalance == null)
                     {
-                        vacationBalance = new VacationBalance
+                        employment.VacationBalance = new VacationBalance
                         {
                             PersonId = person.Id,
                             EmploymentId = employment.Id,
                             Year = apiVacationBalance.VacationEarnedYear
                         };
-                        _vacationBalanceRepo.Insert(vacationBalance);
                     }
-                    else
-                    {
-                        _vacationBalanceRepo.Update(vacationBalance);
-                    }
-                    vacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
-                    vacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
-                    vacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
-                    vacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);
-                    
+                    employment.VacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
+                    employment.VacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
+                    employment.VacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
+                    employment.VacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);                    
                 }
             }
         }
@@ -459,12 +443,8 @@ namespace Core.ApplicationServices
                 i++;
                 report.ResponsibleLeaderId = _reportService.GetResponsibleLeaderForReport(report).Id;
                 report.ActualLeaderId = _reportService.GetActualLeaderForReport(report).Id;
-                if (i % 100 == 0)
-                {
-                    Console.WriteLine("Saving to database");
-                    _reportRepo.Save();
-                }
             }
+            _reportRepo.DetectChanges();
             _reportRepo.Save();
         }
 

@@ -117,5 +117,10 @@ namespace Presentation.Web.Test.Controllers
         {
             throw new System.NotImplementedException();
         }
+
+        public void DetectChanges()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

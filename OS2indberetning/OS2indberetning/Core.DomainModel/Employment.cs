@@ -22,6 +22,7 @@ namespace Core.DomainModel
         public int OrgUnitId { get; set; }
         public virtual OrgUnit OrgUnit { get; set; }
         public long? CostCenter { get; set; }
+        public virtual VacationBalance VacationBalance { get; set; }
     }
 
 }
