@@ -110,6 +110,8 @@ namespace Core.ApplicationServices
         {
             var newReport = delta.GetInstance();
             var report = _reportRepo.AsQueryable().First(x => x.Id == newReport.Id);
+            newReport.Person = report.Person;
+            newReport.ApprovedBy = report.ApprovedBy;
             PrepareReport(newReport);
             if (report.Status == ReportStatus.Accepted)
             {
