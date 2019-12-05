@@ -17,6 +17,12 @@
                         <i class="list-group-item" ng-hide="avpCtrl.pendingVacations.length">Ingen afventende indberetning</i>
                         <a id="{{pV.key}}" class="list-group-item" ng-repeat="pV in avpCtrl.pendingVacations" ng-click="avpCtrl.goToDate(pV)">{{pV.firstName}} <br /> {{pV.dateFrom}} - {{pV.dateTo}}</a>
                     </div>
+                    <div class="list-group" ng-hide="avpCtrl.pendingVacations.length == 0">
+                        <b class="list-group-item  list-group-item-info">Handlinger</b>
+                        <span class="list-group-item">
+                            <a class="btn btn-primary" ng-click="avpCtrl.approveAll()">Godkend alle</a>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

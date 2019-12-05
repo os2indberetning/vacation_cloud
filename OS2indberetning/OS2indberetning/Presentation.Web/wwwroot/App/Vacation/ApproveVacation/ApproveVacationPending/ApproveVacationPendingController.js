@@ -241,6 +241,31 @@ var app;
                 });
             };
             ;
+            ApproveVacationPendingController.prototype.approveAll = function () {
+                var _this = this;
+                _this.$modal.open({
+                    templateUrl: '/App/Vacation/ApproveVacation/ConfirmApproveAllVacationTemplate.html',
+                    controller: 'ConfirmApproveAllVacationController as caavCtrl',
+                    backdrop: "static"
+                }).result.then(function () {
+                    _this.pendingVacations.forEach(vacation => 
+                        _this.VacationReport.approve({ id: vacation.reportdata.Id }, function () {
+                            _this.NotificationService.AutoFadeNotification("success", "", "Indberetningen blev godkendt.");
+                            _this.readPendingVacations();
+                        }, function (err) {
+                            console.log(err);
+                            if (err.data.error.message == null) {
+                                _this.NotificationService.AutoFadeNotification("danger", "", "Der skete en ukendt fejl");
+                            }
+                            else {
+                                var message = err.data.error.message;
+                                _this.NotificationService.AutoFadeNotification("danger", "", message);
+                            }
+                        })
+                    );//end foreach
+                });
+            };
+            ;
             ApproveVacationPendingController.prototype.refresh = function () {
                 this.readPendingVacations();
                 this.scheduler.dataSource.read();
