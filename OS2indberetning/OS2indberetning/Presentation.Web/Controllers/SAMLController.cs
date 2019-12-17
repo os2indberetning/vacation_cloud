@@ -48,7 +48,7 @@ namespace Presentation.Web.Controllers.API
                 _logger.LogError("Could not get ExternalLoginInfo - Name Id claim was probably not sent correctly");
                 return Redirect("/index?loginFailed=true");
             }
-            _logger.LogDebug("Received Claims {@claims}", info.Principal.Claims);
+            _logger.LogDebug("Received Claims {claims}", info.Principal.Claims);
             _signInManager.ClaimsFactory = new Saml2ClaimsFactory(_signInManager.ClaimsFactory, info);
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
 
