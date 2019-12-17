@@ -19,11 +19,7 @@ namespace Presentation.Web.Controllers.API
         public ActionResult Health()
         {
             // a simple health endpoint check that also fails if there is no connection to database
-            if (!orgUnitRepo.AsNoTracking().Any(o => o.HasAccessToVacation))
-            {
-                throw new Exception("Health endpoint reports no OrgUits with access to Vacation");
-            }
-
+            var count = orgUnitRepo.AsNoTracking().Count();
             return Ok();
         }
     }
