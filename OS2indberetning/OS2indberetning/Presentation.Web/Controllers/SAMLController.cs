@@ -43,7 +43,12 @@ namespace Presentation.Web.Controllers.API
         public async Task<ActionResult> Callback()
         {
             var info = await _signInManager.GetExternalLoginInfoAsync();
-            _logger.LogDebug("Received ExternalLoginInfo {@info}", info);
+            if (info == null)
+            {
+                _logger.LogError("Could not get ExternalLoginInfo - Name Id claim was probably not sent correctly");
+                return Redirect("/index?loginFailed=true");
+            }
+            _logger.LogDebug("Received Claims {@claims}", info.Principal.Claims);
             _signInManager.ClaimsFactory = new Saml2ClaimsFactory(_signInManager.ClaimsFactory, info);
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
 
