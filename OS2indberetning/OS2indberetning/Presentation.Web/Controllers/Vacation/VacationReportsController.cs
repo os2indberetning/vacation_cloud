@@ -186,7 +186,7 @@ namespace OS2Indberetning.Controllers.Vacation
                     _reportService.SendMailToUserAndApproverOfEditedReport(report, emailText, CurrentUser, "afvist");
                     return Ok();
                 } catch(Exception e) {
-                    _logger.LogError(e, "Fejl under forsøg på at afvise en allerede godkendt indberetning. Rapportens status er ikke ændret.");
+                    _logger.LogWarning(e, "Fejl under forsøg på at afvise en allerede godkendt indberetning. Rapportens status er ikke ændret.");
                 }
             }
 
@@ -208,7 +208,7 @@ namespace OS2Indberetning.Controllers.Vacation
             // User should not be allowed to change a Report which has been accepted or rejected.
             if (report.Status != ReportStatus.Pending)
             {
-                _logger.LogError("Forsøg på at redigere indberetning med anden status end afventende. Rapportens status er ikke ændret.");
+                _logger.LogWarning("Forsøg på at redigere indberetning med anden status end afventende. Rapportens status er ikke ændret.");
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
             
@@ -240,12 +240,12 @@ namespace OS2Indberetning.Controllers.Vacation
             }
             catch (Infrastructure.KMDVacationService.KMDSetAbsenceFailedException ex)
             {
-                _logger.LogError(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at slette indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName} \n REQUEST: startdate: {ex.Request.StartDate}, starttime: {ex.Request.StartTime}, enddate: {ex.Request.EndDate}, endtime: {ex.Request.EndTime}, operation: {ex.Request.Operation}, personlnumber: {ex.Request.PersonnelNumber}");
+                _logger.LogWarning(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at slette indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName} \n REQUEST: startdate: {ex.Request.StartDate}, starttime: {ex.Request.StartTime}, enddate: {ex.Request.EndDate}, endtime: {ex.Request.EndTime}, operation: {ex.Request.Operation}, personlnumber: {ex.Request.PersonnelNumber}");
                 return StatusCode(StatusCodes.Status400BadRequest, ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fejl under slet ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
+                _logger.LogWarning(ex, $"Fejl under slet ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
                 throw;
             }
             _logger.LogInformation($"Ferieindberetning er slettet - id: {report.Id}, employmentId: {report.Employment?.Id}, person: {report.Person?.FullName}, startdato: {report.StartTimestamp}, starttid: {report.StartTime}, slutdato: {report.EndTimestamp}, sluttid: {report.EndTime}, fraværstype: {report.VacationType}");
@@ -268,12 +268,12 @@ namespace OS2Indberetning.Controllers.Vacation
             }
             catch(Infrastructure.KMDVacationService.KMDSetAbsenceFailedException ex)
             {
-                _logger.LogError(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at godkende indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}");
+                _logger.LogWarning(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at godkende indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}");
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fejl under godkend ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
+                _logger.LogWarning(ex, $"Fejl under godkend ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
                 throw;
             }
             _logger.LogInformation($"Ferieindberetning er godkendt - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
@@ -295,12 +295,12 @@ namespace OS2Indberetning.Controllers.Vacation
             }
             catch (Infrastructure.KMDVacationService.KMDSetAbsenceFailedException ex)
             {
-                _logger.LogError(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at afvise indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}");
+                _logger.LogWarning(ex, $"Fejl fra KMD's ferie snitflade ved forsøg på at afvise indberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}  \n REQUEST: {ex.Request}");
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fejl under afvis ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
+                _logger.LogWarning(ex, $"Fejl under afvis ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
                 throw;
             }
 
