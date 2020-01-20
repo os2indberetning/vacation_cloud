@@ -245,20 +245,23 @@ namespace Core.ApplicationServices
                 var apiVacationBalance = apiEmployment.VacationBalance;
                 if (apiVacationBalance != null)
                 {
-                    var employment = person.Employments.Single(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber && (e.EndDateTimestamp == 0 || e.EndDateTimestamp >= GetUnixTime(DateTime.Now.Date)));
-                    if (employment.VacationBalance == null)
+                    var employment = person.Employments.SingleOrDefault(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber && (e.EndDateTimestamp == 0 || e.EndDateTimestamp >= GetUnixTime(DateTime.Now.Date)));
+                    if (employment != null)
                     {
-                        employment.VacationBalance = new VacationBalance
+                        if (employment.VacationBalance == null)
                         {
-                            PersonId = person.Id,
-                            EmploymentId = employment.Id,
-                            Year = apiVacationBalance.VacationEarnedYear
-                        };
+                            employment.VacationBalance = new VacationBalance
+                            {
+                                PersonId = person.Id,
+                                EmploymentId = employment.Id,
+                                Year = apiVacationBalance.VacationEarnedYear
+                            };
+                        }
+                        employment.VacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
+                        employment.VacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
+                        employment.VacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
+                        employment.VacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);
                     }
-                    employment.VacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
-                    employment.VacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
-                    employment.VacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
-                    employment.VacationBalance.UpdatedAt = GetUnixTime(apiVacationBalance.UpdatedDate);                    
                 }
             }
         }
