@@ -245,7 +245,7 @@ namespace Core.ApplicationServices
                 var apiVacationBalance = apiEmployment.VacationBalance;
                 if (apiVacationBalance != null)
                 {
-                    var employment = person.Employments.First(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber);
+                    var employment = person.Employments.Single(e => e.EmploymentId.ToString() == apiEmployment.EmployeeNumber && (e.EndDateTimestamp == 0 || e.EndDateTimestamp >= GetUnixTime(DateTime.Now.Date)));
                     if (employment.VacationBalance == null)
                     {
                         employment.VacationBalance = new VacationBalance
