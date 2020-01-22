@@ -32,5 +32,6 @@ namespace Core.DomainServices
         IQueryable<T> AsQueryableLazy();
         void Detach(T entity);
         void SetChangeTrackingEnabled(bool value);
+        void DetectChanges();
     }
 }

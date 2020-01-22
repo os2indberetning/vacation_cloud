@@ -74,9 +74,13 @@ namespace Infrastructure.DataAccess
             return _dbSet.AsNoTracking().AsQueryable();
         }
 
-        public void Save()
+        public void DetectChanges()
         {
             _context.ChangeTracker.DetectChanges();
+        }
+
+        public void Save()
+        {
             _context.SaveChanges();
         }
 

@@ -110,6 +110,8 @@ namespace Core.ApplicationServices
         {
             var newReport = delta.GetInstance();
             var report = _reportRepo.AsQueryable().First(x => x.Id == newReport.Id);
+            newReport.Person = report.Person;
+            newReport.ApprovedBy = report.ApprovedBy;
             PrepareReport(newReport);
             if (report.Status == ReportStatus.Accepted)
             {
@@ -153,21 +155,16 @@ namespace Core.ApplicationServices
             return true;
         }
 
-        public void SendMailIfUserEditedAprovedReport(VacationReport report, string action)
+        private string GetReportDescription(VacationReport report)
         {
-            var mailContent = "Hej," + Environment.NewLine + Environment.NewLine +
-                              "Jeg," + report.Person.FullName + " har pr. dags dato " + action + " den følgende godkendte ferieindberetning:" +
-                              Environment.NewLine + Environment.NewLine;
-
-            mailContent += "Feriestart: " + report.StartTimestamp.ToDateTime().ToString("dd/MM/yyyy");
-
+            var result = "Startdato: " + report.StartTimestamp.ToDateTime().ToString("dd/MM/yyyy");
             if (report.StartTime != null)
-                mailContent += " - " + report.StartTime?.ToString(@"hh\:mm");
+                result += " - " + report.StartTime?.ToString(@"hh\:mm");
 
-            mailContent += Environment.NewLine + "Ferieafslutning: " + report.EndTimestamp.ToDateTime().ToString("dd/MM/yyyy");
+            result += Environment.NewLine + "Slutdato: " + report.EndTimestamp.ToDateTime().ToString("dd/MM/yyyy");
 
             if (report.EndTime != null)
-                mailContent += " - " + report.EndTime?.ToString(@"hh\:mm");
+                result += " - " + report.EndTime?.ToString(@"hh\:mm");
 
             string vacationType;
 
@@ -193,69 +190,28 @@ namespace Core.ApplicationServices
                     break;
             }
 
-            mailContent += Environment.NewLine + "Ferietype: " + vacationType;
+            result += Environment.NewLine + "Fraværstype: " + vacationType;
 
             if (report.Purpose != null)
-                mailContent += Environment.NewLine + "Bemærkning: " + report.Purpose;
+                result += Environment.NewLine + "Bemærkning: " + report.Purpose;
 
-            mailContent += Environment.NewLine + Environment.NewLine
-                           + "Med venlig hilsen " + report.Person.FullName + Environment.NewLine + Environment.NewLine;
+            return result;
+        }
 
-
+        public void SendMailIfUserEditedAprovedReport(VacationReport report, string action)
+        {
+            var mailContent = report.Person.FullName + " har pr. dags dato " + action + " den følgende godkendte ferieindberetning:" + Environment.NewLine + Environment.NewLine;
+            mailContent += GetReportDescription(report);
             _mailSender.SendMail(report.ApprovedBy.Mail, "En medarbejder har ændret i en indberetning du har godkendt.", mailContent);
         }
 
         public new void SendMailToUserAndApproverOfEditedReport(VacationReport report, string emailText, Person admin, string action)
         {
-            var mailContent = "Hej," + Environment.NewLine + Environment.NewLine +
-            "Jeg, " + admin.FullName + ", har pr. dags dato " + action + " den følgende godkendte ferieindberetning:" + Environment.NewLine + Environment.NewLine;
+            var mailContent = admin.FullName + ", har pr. dags dato " + action + " den følgende godkendte ferieindberetning:" + Environment.NewLine + Environment.NewLine;
 
+            mailContent += GetReportDescription(report);
 
-            mailContent += "Feriestart: " + report.StartTimestamp.ToDateTime().ToString("dd/MM/yyyy");
-
-            if (report.StartTime != null)
-                mailContent += " - " + report.StartTime?.ToString("hh:mm");
-
-            mailContent += Environment.NewLine + "Ferieafslutning: " + report.EndTimestamp.ToDateTime().ToString("dd/MM/yyyy");
-
-            if (report.EndTime != null)
-                mailContent += " - " + report.EndTime?.ToString("hh:mm");
-
-            string vacationType;
-
-            switch (report.VacationType)
-            {
-                case VacationType.Care:
-                    vacationType = "Omsorgsdage";
-                    break;
-                case VacationType.Optional:
-                    vacationType = "Valgfri ferie";
-                    break;
-                case VacationType.Regular:
-                    vacationType = "Almindelig ferie";
-                    break;
-                case VacationType.Senior:
-                    vacationType = "Seniordage";
-                    break;
-                case VacationType.SixthVacationWeek:
-                    vacationType = "6. ferieuge";
-                    break;
-                default:
-                    vacationType = "Andet";
-                    break;
-            }
-
-            mailContent += Environment.NewLine + "Ferietype: " + vacationType;
-
-            if (report.Purpose != null)
-                mailContent += Environment.NewLine + "Bemærkning: " + report.Purpose;
-
-            mailContent += Environment.NewLine + Environment.NewLine
-            + "Hvis du mener at dette er en fejl, så kontakt mig da venligst på " + admin.Mail + Environment.NewLine
-            + "Med venlig hilsen " + admin.FullName + Environment.NewLine + Environment.NewLine
-            + "Besked fra administrator: " + Environment.NewLine + emailText;
-
-            _mailSender.SendMail(report.Person.Mail, "En administrator har ændret i din indberetning.", mailContent);
+            _mailSender.SendMail(report.Person.Mail, $"Godkendt indberetning af ferie/fravær er {action}", mailContent);
 
             _mailSender.SendMail(report.ApprovedBy.Mail, "En administrator har ændret i en indberetning du har godkendt.", mailContent);
         }
@@ -274,9 +230,10 @@ namespace Core.ApplicationServices
             }
 
             var recipient = report.Person.Mail;
-
-            _mailSender.SendMail(recipient, "Afvist ferieindberetning",
-                "Din ferieindberetning er blevet afvist med kommentaren: \n \n" + report.Comment);
+            var mailSubject = "Anmodning om ferie/fravær er blevet afvist";
+            var mailContent = $"Din anmodning om nedenstående ferie/fravær er blevet afvist af din leder med følgende bemærkning: {report.Comment}{Environment.NewLine}{Environment.NewLine}";
+            mailContent += GetReportDescription(report);
+            _mailSender.SendMail(recipient, mailSubject, mailContent);
         }
 
         public void ApproveReport(VacationReport report, Person approver)

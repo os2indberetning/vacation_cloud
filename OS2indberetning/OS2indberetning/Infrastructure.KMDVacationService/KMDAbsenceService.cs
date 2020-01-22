@@ -61,8 +61,8 @@ namespace Infrastructure.KMDVacationService
                         request.OriginalAbsenceAttendanceType = "6F";
                         break;
                     case VacationType.Senior:
-                        request.AbsenceAttendanceType = "SO";
-                        request.OriginalAbsenceAttendanceType = "SO";
+                        request.AbsenceAttendanceType = config["KMDVacationService:SeniorAbsenceAttendanceType"];
+                        request.OriginalAbsenceAttendanceType = config["KMDVacationService:SeniorAbsenceAttendanceType"];
                         break;
                     case VacationType.Care:
                         request.AbsenceAttendanceType = "OS";
