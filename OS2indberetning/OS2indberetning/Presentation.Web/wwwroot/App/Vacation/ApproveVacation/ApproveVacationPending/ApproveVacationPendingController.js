@@ -248,8 +248,8 @@ var app;
                     controller: 'ConfirmApproveAllVacationController as caavCtrl',
                     backdrop: "static"
                 }).result.then(function () {
-                    _this.pendingVacations.forEach(vacation => 
-                        _this.VacationReport.approve({ id: vacation.reportdata.Id }, function () {
+                    angular.forEach(_this.pendingVacations, function (pendingVacation) {
+                        _this.VacationReport.approve({ id: pendingVacation.reportdata.Id }, function () {
                             _this.NotificationService.AutoFadeNotification("success", "", "Indberetningen blev godkendt.");
                             _this.readPendingVacations();
                         }, function (err) {
@@ -262,7 +262,7 @@ var app;
                                 _this.NotificationService.AutoFadeNotification("danger", "", message);
                             }
                         })
-                    );//end foreach
+                    });
                 });
             };
             ;
