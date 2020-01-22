@@ -7,6 +7,7 @@ using Core.DomainModel;
 using Core.DomainServices;
 using Core.DomainServices.Interfaces;
 using Microsoft.AspNet.OData;
+using Core.ApplicationServices.Utility;
 
 namespace Core.ApplicationServices
 {
@@ -248,7 +249,7 @@ namespace Core.ApplicationServices
                 report.VacationType == VacationType.SixthVacationWeek)
             {
                 var absenceReport = _absenceBuilder.Create(report);
-                _absenceService.SetAbsence(absenceReport);
+                Retry.Do(() => _absenceService.SetAbsence(absenceReport), TimeSpan.FromMilliseconds(500));
             }
 
             report.ProcessedDateTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -274,7 +275,7 @@ namespace Core.ApplicationServices
                 report.VacationType == VacationType.SixthVacationWeek)
             {
                 var absenceReport = _absenceBuilder.Delete(report);
-                _absenceService.SetAbsence(absenceReport);
+                Retry.Do(() => _absenceService.SetAbsence(absenceReport), TimeSpan.FromMilliseconds(500));
             }
             report.ProcessedDateTimestamp = 0;
         }
