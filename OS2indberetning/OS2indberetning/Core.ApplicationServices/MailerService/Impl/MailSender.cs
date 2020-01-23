@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Mail;
 using Core.ApplicationServices.MailerService.Interface;
+using Core.ApplicationServices.Utility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -17,18 +18,6 @@ namespace Core.ApplicationServices.MailerService.Impl
         {
             this.logger = logger;
             this.config = config;
-            _smtpClient = new SmtpClient()
-            {
-                Host = this.config["Mail:Host"],
-                Port = int.Parse(this.config["Mail:Port"]),
-                EnableSsl = true,
-                Credentials = new NetworkCredential()
-                {
-                    UserName = this.config["Mail:User"],
-                    Password = this.config["Mail:Password"]
-                }
-            };
-
         }
 
         /// <summary>
@@ -57,7 +46,17 @@ namespace Core.ApplicationServices.MailerService.Impl
             msg.Subject = subject;
             try
             {
-                _smtpClient.Send(msg);
+                using (var smtpclient = new SmtpClient(config["Mail:Host"], int.Parse(this.config["Mail:Port"])))
+                {
+                    smtpclient.EnableSsl = true;
+                    smtpclient.Credentials = new NetworkCredential()
+                    {
+                        UserName = this.config["Mail:User"],
+                        Password = this.config["Mail:Password"]
+                    }; ;
+                    smtpclient.Timeout = int.Parse(this.config["Mail:Timeout"]);
+                    Retry.Do(() => smtpclient.Send(msg), TimeSpan.FromMilliseconds(500));
+                };
             }
             catch (Exception e )
             {
