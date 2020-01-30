@@ -131,23 +131,30 @@ namespace OS2Indberetning.Controllers.Vacation
         [EnableQuery]
         public IActionResult Post([FromBody] VacationReport vacationReport, string emailText)
         {
-            if(CurrentUser.IsAdmin && emailText != null && vacationReport.Status == ReportStatus.Accepted)
+            try
             {
-                // An admin is trying to edit an already approved report.
-                var adminEditResult = _reportService.Create(vacationReport);
-                // CurrentUser is restored after the calculation.
-                _reportService.SendMailToUserAndApproverOfEditedReport(adminEditResult, emailText, CurrentUser, "redigeret");
-                return Ok(adminEditResult);
-            }
+                if (CurrentUser.IsAdmin && emailText != null && vacationReport.Status == ReportStatus.Accepted)
+                {
+                    // An admin is trying to edit an already approved report.
+                    var adminEditResult = _reportService.Create(vacationReport);
+                    // CurrentUser is restored after the calculation.
+                    _reportService.SendMailToUserAndApproverOfEditedReport(adminEditResult, emailText, CurrentUser, "redigeret");
+                    return Ok(adminEditResult);
+                }
 
-            if (CurrentUser.Id != vacationReport.PersonId)
+                if (CurrentUser.Id != vacationReport.PersonId)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden);
+                }
+
+                var result = _reportService.Create(vacationReport);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status403Forbidden);
+                _logger.LogWarning(ex, "Failed to post vacation report");
+                return StatusCode(StatusCodes.Status400BadRequest, ex);
             }
-
-            var result = _reportService.Create(vacationReport);
-
-            return Ok(result);
         }
 
         // PATCH: odata/VacationReports(5)
