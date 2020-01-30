@@ -246,7 +246,7 @@ namespace OS2Indberetning.Controllers.Vacation
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, $"Fejl under slet ferieindberetning - id: {report.Id}, employmentId: {report.Employment.Id}, person: {report.Person.FullName}");
-                throw;
+                return StatusCode(StatusCodes.Status400BadRequest, ex);
             }
             _logger.LogInformation($"Ferieindberetning er slettet - id: {report.Id}, employmentId: {report.Employment?.Id}, person: {report.Person?.FullName}, startdato: {report.StartTimestamp}, starttid: {report.StartTime}, slutdato: {report.EndTimestamp}, sluttid: {report.EndTime}, fraværstype: {report.VacationType}");
             return Ok();
