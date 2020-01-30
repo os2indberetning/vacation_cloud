@@ -114,33 +114,34 @@ namespace Core.ApplicationServices
             newReport.Person = report.Person;
             newReport.ApprovedBy = report.ApprovedBy;
             PrepareReport(newReport);
-            if (report.Status == ReportStatus.Accepted)
-            {
-                SendMailIfUserEditedAprovedReport(newReport, "redigeret");
-            }
+            var shouldNotify = report.Status == ReportStatus.Accepted;
             if (report.ProcessedDateTimestamp != 0)
             {
                 DeleteReport(report);
             }
             delta.Patch(report);
             _reportRepo.Save();
+            if (shouldNotify)
+            {
+                SendMailIfUserEditedAprovedReport(newReport, "redigeret");
+            }
             return newReport;
         }
 
         public void Delete(int id)
         {
             var report = _reportRepo.AsQueryable().First(x => x.Id == id);
-
-            if (report.Status == ReportStatus.Accepted)
-            {
-                SendMailIfUserEditedAprovedReport(report, "slettet");
-            }
+            var shouldNotify = report.Status == ReportStatus.Accepted;
             if (report.ProcessedDateTimestamp != 0)
             {
                 DeleteReport(report);
             }
             _reportRepo.Delete(report);
             _reportRepo.Save();
+            if (shouldNotify)
+            {
+                SendMailIfUserEditedAprovedReport(report, "slettet");
+            }
         }
 
         public new bool Validate(VacationReport report)
