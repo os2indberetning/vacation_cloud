@@ -11,7 +11,7 @@ namespace Presentation.Web.Config
     {
         public static IRouteBuilder Use(IRouteBuilder routeBuilder)
         {
-            routeBuilder.Select().Filter().Expand().Count().MaxTop(100).OrderBy();            
+            routeBuilder.Select().Filter().Expand().Count().MaxTop(300).OrderBy();            
             routeBuilder.MapODataServiceRoute("odata", "odata", GetODataModel());
             return routeBuilder;
         }
@@ -19,9 +19,6 @@ namespace Presentation.Web.Config
         private static IEdmModel GetODataModel()
         {
             ODataConventionModelBuilder builder = new ODataConventionModelBuilder();
-
-            // todo include this?
-            //builder.EntitySet<TestReport>("TestReports");
 
             builder.EntitySet<Address>("Addresses");
 
