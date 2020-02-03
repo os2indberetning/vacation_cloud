@@ -146,14 +146,21 @@ namespace Core.ApplicationServices
 
         public new bool Validate(VacationReport report)
         {
-            if (report.PersonId == 0) return false;
-            if (report.EndTimestamp < report.StartTimestamp) return false;
-            if (report.StartTime > report.EndTime &&
-                report.StartTimestamp.ToDateTime().Date == report.EndTimestamp.ToDateTime().Date) return false;
-            if (!_employmentRepository.AsQueryable().First(x => x.Id == report.EmploymentId).OrgUnit.HasAccessToVacation) return false;
-            if (report.StartTimestamp == report.EndTimestamp && report.StartTime.HasValue && report.EndTime.HasValue && report.StartTime.Value == report.EndTime.Value) return false;
-            if (report.VacationType == VacationType.Care && string.IsNullOrEmpty(report.AdditionalData)) return false;
-
+            try
+            {
+                if (report.PersonId == 0) return false;
+                if (report.EndTimestamp < report.StartTimestamp) return false;
+                if (report.StartTime > report.EndTime &&
+                    report.StartTimestamp.ToDateTime().Date == report.EndTimestamp.ToDateTime().Date) return false;
+                if (!_employmentRepository.AsQueryable().First(x => x.Id == report.EmploymentId).OrgUnit.HasAccessToVacation) return false;
+                if (report.StartTimestamp == report.EndTimestamp && report.StartTime.HasValue && report.EndTime.HasValue && report.StartTime.Value == report.EndTime.Value) return false;
+                if (report.VacationType == VacationType.Care && string.IsNullOrEmpty(report.AdditionalData)) return false;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,"Unexpected exception while validating report {@report}", report);
+                throw;
+            }            
             return true;
         }
 
