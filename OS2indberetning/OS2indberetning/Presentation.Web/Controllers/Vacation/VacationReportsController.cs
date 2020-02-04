@@ -110,14 +110,22 @@ namespace OS2Indberetning.Controllers.Vacation
         /// <returns></returns>
         public new IActionResult Put([FromODataUri] int key, Delta<VacationReport> delta)
         {
-            var report = Repo.AsQueryable().FirstOrDefault(x => x.Id == key);
+            try
+            {
+                var report = Repo.AsQueryable().FirstOrDefault(x => x.Id == key);
 
-            if (report == null) return StatusCode(StatusCodes.Status404NotFound);
-            if (CurrentUser.Id != report.PersonId) return StatusCode(StatusCodes.Status403Forbidden);
+                if (report == null) return StatusCode(StatusCodes.Status404NotFound);
+                if (CurrentUser.Id != report.PersonId) return StatusCode(StatusCodes.Status403Forbidden);
 
-            _reportService.Edit(delta);
+                _reportService.Edit(delta);
 
-            return Updated(report);
+                return Updated(report);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to edit vacation report");
+                return StatusCode(StatusCodes.Status400BadRequest, ex);
+            }
         }
 
         // POST: odata/VacationReports
