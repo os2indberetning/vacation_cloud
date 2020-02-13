@@ -41,15 +41,8 @@ namespace Core.ApplicationServices.Utility
                     exceptions.Add(ex);
                 }
             }
-            // if all exceptions are the same type, just throw the last/most recent one
-            if (exceptions.Select(e => e.GetType()).Distinct().Count() == 1)
-            {
-                throw exceptions.Last();
-            }
-            else
-            {
-                throw new AggregateException(exceptions);
-            }
+            // throw the last/most recent exception
+            throw exceptions.Last();
         }
     }
 }
