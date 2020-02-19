@@ -57,18 +57,19 @@ namespace Core.ApplicationServices.MailerService.Impl
                     notification.Notified = true;
 
                     var reports = GetLeadersWithPendingReportsMails();
-                    foreach (var report in reports)
+                    var distinctReportTypesPerEmail = reports.GroupBy(report => new { report.ReportType, report.ResponsibleLeader.Mail });
+                    foreach (var report in distinctReportTypesPerEmail)
                     {
-                        switch (report.ReportType)
+                        switch (report.Key.ReportType)
                         {
                             case ReportType.Drive:
                                 // _mailSender.SendMail(report.ResponsibleLeader.Mail, ConfigurationManager.AppSettings[""], driveBody);
                                 break;
                             case ReportType.Vacation:
-                                mailSender.SendMail(report.ResponsibleLeader.Mail, config["Mail:VacationMail:Subject"], config["Mail:VacationMail:Body"]);
+                                mailSender.SendMail(report.Key.Mail, config["Mail:VacationMail:Subject"], config["Mail:VacationMail:Body"]);
                                 break;
                             default:
-                                logger.LogError("Kunne ikke finde typen af rapport: " + report.Id);
+                                logger.LogError("Kunne ikke finde typen af rapport: " + report.Key.ReportType);
                                 break;
                         }
                     }
