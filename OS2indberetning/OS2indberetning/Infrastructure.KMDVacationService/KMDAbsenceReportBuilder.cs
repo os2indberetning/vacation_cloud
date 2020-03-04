@@ -102,7 +102,7 @@ namespace Infrastructure.KMDVacationService
                 Type = report.VacationType,
                 StartDate = startDate,
                 EndDate = endDate,
-                ExtraData = extraData
+                ExtraData = extraData,
             };
         }
 
@@ -165,7 +165,11 @@ namespace Infrastructure.KMDVacationService
                 list.Add(BuildStart(report, kmdAbsenceOperation));
             }
 
-            list.Add(BuildCenter(report, kmdAbsenceOperation));
+            var center = BuildCenter(report, kmdAbsenceOperation);
+            if (center.StartDate.Date <= center.EndDate.Date)
+            {
+                list.Add(center);
+            }            
 
             if (report.EndTime != null)
             {
