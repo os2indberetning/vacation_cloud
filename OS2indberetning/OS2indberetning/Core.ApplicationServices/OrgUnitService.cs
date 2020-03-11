@@ -72,7 +72,7 @@ namespace Core.ApplicationServices
             {
                 return new Person
                 {
-                    FullName = "Leder ikke fundet"
+                    FirstName = "Leder ikke fundet"
                 };
             }
             return empl.Person;

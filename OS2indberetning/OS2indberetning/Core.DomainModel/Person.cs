@@ -16,7 +16,18 @@ namespace Core.DomainModel
         public bool RecieveMail { get; set; }
         public double DistanceFromHomeToBorder { get; set; }
         public string Initials { get; set; }
-        public string FullName { get; set; }
+        public string FullName { 
+            get 
+            {
+                var fullName = $"{FirstName} {LastName}";
+                if (!string.IsNullOrEmpty(Mail))
+                {
+                    fullName = $"{fullName} [{Mail}]";
+                }
+                return fullName;
+            }
+            set { }
+        }
         public bool IsAdmin { get; set; }
         public bool IsSubstitute { get; set; }
         public bool IsActive { get; set; }
