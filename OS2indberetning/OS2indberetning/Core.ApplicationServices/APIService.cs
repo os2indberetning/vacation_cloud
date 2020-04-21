@@ -78,12 +78,8 @@ namespace Core.ApplicationServices
                     UpdatePersons(apiOrganizationDTO.Persons);
                     _logger.LogInformation("Updating leaders on expired or activated substitutes");
                     UpdateLeadersOnExpiredOrActivatedSubstitutes();
-                    // Todo block to look at when we include drive solution in this solution
-                    // TODO: Send mail about dirty addresses (once we include drive solution in this solution)
-                    //_addressHistoryService.UpdateAddressHistories();
-                    //_addressHistoryService.CreateNonExistingHistories();
-                    //_logger.LogInformation("Adding leaders to reports that have none");
-                    //AddLeadersToReportsThatHaveNone();
+                    _logger.LogInformation("Adding leaders to reports that have none");
+                    AddLeadersToReportsThatHaveNone();
                     _logger.LogInformation("Update completed in {0} seconds", stopwatch.Elapsed.TotalSeconds);
                 }
             }
@@ -435,7 +431,9 @@ namespace Core.ApplicationServices
             // Fail-safe as some reports for unknown reasons have not had a leader attached
             Console.WriteLine("Adding leaders to drive reports that have none");
             var i = 0;
-            var reports = _reportRepo.AsQueryableLazy().Where(r => r.ResponsibleLeader == null || r.ActualLeader == null).ToList();
+            var reports = _reportRepo.AsQueryableLazy().Where(r => 
+                r.Status == ReportStatus.Pending &&
+                (r.ResponsibleLeader == null || !r.ResponsibleLeader.IsActive || r.ActualLeader == null || ! r.ActualLeader.IsActive)).ToList();
             foreach (var report in reports)
             {
                 i++;
