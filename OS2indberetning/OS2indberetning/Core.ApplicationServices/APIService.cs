@@ -428,8 +428,6 @@ namespace Core.ApplicationServices
 
         public void AddLeadersToReportsThatHaveNone()
         {
-            // Fail-safe as some reports for unknown reasons have not had a leader attached
-            Console.WriteLine("Adding leaders to drive reports that have none");
             var i = 0;
             var reports = _reportRepo.AsQueryableLazy().Where(r => 
                 r.Status == ReportStatus.Pending &&
