@@ -179,7 +179,7 @@ namespace Core.ApplicationServices
                 mapAPIPerson(apiPerson, ref personToInsert);
                 _personRepo.Insert(personToInsert);
                 _personRepo.Save();
-                UpdateHomeAddress(apiPerson, ref personToInsert);
+                //UpdateHomeAddress(apiPerson, ref personToInsert);
                 UpdateVacationBalances(apiPerson, ref personToInsert);
             }
             _personRepo.Save();
@@ -199,7 +199,7 @@ namespace Core.ApplicationServices
                     var apiPerson = apiPersons.Where(s => s.CPR == person.CprNumber).First();
                     var personToUpdate = person;
                     mapAPIPerson(apiPerson, ref personToUpdate);
-                    UpdateHomeAddress(apiPerson, ref personToUpdate);
+                    //UpdateHomeAddress(apiPerson, ref personToUpdate);
                     UpdateVacationBalances(apiPerson, ref personToUpdate);
                     _personRepo.Update(personToUpdate);
                 }
