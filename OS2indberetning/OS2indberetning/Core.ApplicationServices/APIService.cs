@@ -253,6 +253,7 @@ namespace Core.ApplicationServices
                                 Year = apiVacationBalance.VacationEarnedYear
                             };
                         }
+                        employment.VacationBalance.Year = apiVacationBalance.VacationEarnedYear;
                         employment.VacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
                         employment.VacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
                         employment.VacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
