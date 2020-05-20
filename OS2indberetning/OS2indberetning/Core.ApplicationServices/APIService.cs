@@ -250,10 +250,10 @@ namespace Core.ApplicationServices
                             {
                                 PersonId = person.Id,
                                 EmploymentId = employment.Id,
-                                Year = apiVacationBalance.VacationEarnedYear
+                                Year = apiVacationBalance.VacationEarnedYear + 1
                             };
                         }
-                        employment.VacationBalance.Year = apiVacationBalance.VacationEarnedYear;
+                        employment.VacationBalance.Year = apiVacationBalance.VacationEarnedYear + 1;
                         employment.VacationBalance.FreeVacationHours = apiVacationBalance.FreeVacationHoursTotal ?? 0;
                         employment.VacationBalance.TransferredHours = apiVacationBalance.TransferredVacationHours ?? 0;
                         employment.VacationBalance.VacationHours = apiVacationBalance.VacationHoursWithPay ?? 0;
