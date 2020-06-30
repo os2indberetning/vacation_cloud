@@ -21,14 +21,21 @@ namespace Presentation.Web.Config
                     options.SPOptions.Logger = new AspNetCoreLoggerAdapter(logger);
                     options.SPOptions.EntityId = new EntityId(configuration["SAML:EntityId"]);
                     options.SPOptions.PublicOrigin = new Uri(configuration["SAML:PublicOrigin"]);
+                    options.SPOptions.ReturnUrl = new Uri(options.SPOptions.PublicOrigin, "index");
                     options.IdentityProviders.Add(
                         new IdentityProvider(
                             new EntityId(configuration["SAML:IdpEntityId"]), options.SPOptions)
                         {
-                            LoadMetadata = true
-                            ,MetadataLocation = configuration["SAML:IdpMetadataLocation"]
+                            MetadataLocation = configuration["SAML:IdpMetadataLocation"]
+                            ,LoadMetadata = true
                         });
                     options.SPOptions.ServiceCertificates.Add(new X509Certificate2(configuration["SAML:CertificateFilename"], configuration["SAML:CertificatePassword"]));
+                    // ignore unsolved bug that throws exception occasionally
+                    // https://github.com/Sustainsys/Saml2/commit/15bdb4784830a877d7b7b3cfd91bb7e6043fabf4
+                    options.Notifications.Unsafe.IgnoreUnexpectedInResponseTo = (r, c) =>
+                    {
+                        return true;
+                    };
                 });
             return services;
         }
